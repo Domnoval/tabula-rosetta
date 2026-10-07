@@ -86,5 +86,19 @@
       "mcp__Shopify__publish-digital-product",
       "mcp__Shopify__switch-shop"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__.*|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/pause-gate.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
   }
 }
