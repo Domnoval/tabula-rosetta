@@ -25,3 +25,5 @@ Multidisciplinary artist and creative technologist. Sacred geometry, post-animis
 - Higgsfield: anything that spends credits or publishes: generations, upscales, presets, ad and short runs, site deploys, TikTok publishing
 - Shopify: product, collection, discount and inventory writes, raw GraphQL mutations, digital product publishing
 - Force-push, hard reset, recursive delete
+
+The pause list above is enforced by .claude/hooks/pause-gate.py. When a call is paused, say what it will do and what it costs, then ask in chat.
