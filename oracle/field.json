@@ -1,9 +1,9 @@
 {
   "now": {
-    "headline": "Shopify has never sold a thing. Sell to ten people you know before ten thousand you don't.",
-    "situation": "Floating, pivoting back to making money via art. Shopify shows 0 orders and $0 ever: 17 products, 228 sessions in 90 days, 5 carts started in 12 months and none completed. $2,265 of signed prints sit in archived listings while the live variants show 0, the originals collection is empty, and the Sigil Gun product is still a draft. Real money may live on pay.the37thmove.com instead.",
-    "round": 1,
-    "convenedAt": "2026-10-08T04:40:00Z",
+    "headline": "Money gets one seat. The other five are for making something strange.",
+    "situation": "Floating, pivoting back to making money via art. Shopify shows 0 orders and $0 ever (17 products, 228 sessions in 90 days, 5 carts started, none finished); $2,265 of signed prints sit in archived listings; real sales may live on pay.the37thmove.com. Round 2 re-judges round 1's 24 candidates under a new rule: one path floats around money, five are free of it.",
+    "round": 2,
+    "convenedAt": "2026-10-08T17:10:00Z",
     "council": [
       "collider",
       "inverter",
@@ -12,7 +12,8 @@
       "ledger",
       "scout"
     ],
-    "trigger": "interview"
+    "trigger": "asked",
+    "question": "Is there a painting on an easel right now, and has anyone ever paid you for one? Stop Me depends on both and I can see neither."
   },
   "paths": [
     {
@@ -37,40 +38,42 @@
       "sources": [],
       "spends": "Shopify draft asks first",
       "isWildcard": false,
+      "isMoney": true,
+      "doubt": "One sale proves one buyer, not a market. It needs a painting actually in progress and someone who already wants to own it, and I can see neither.",
       "status": "open",
-      "round": 1,
-      "createdAt": "2026-10-08T04:40:00Z"
+      "round": 2,
+      "createdAt": "2026-10-08T17:10:00Z"
     },
     {
-      "id": "37-moves",
-      "title": "37 Moves: patrons buy a turn, not a print",
-      "why": "Commissions become 37 seats in a slow game on Pink TV. Each move is irreversible; the final board is the work.",
-      "firstMove": "In tabula-rosetta, build work/37-moves/index.html: one dark page, a 37-cell board, cell 1 open, 36 sealed, each labeled with a Pink TV station name. Cell 1 states the deal: $1,370 buys one commissioned work, one irreversible move on the board, one station named after the mover. Then, read-only, use Gmail search_threads (payment receipts, commission asks) to find up to 10 warm names and create_draft one personal invitation for each. Drafts only. Send nothing, create no products.",
-      "mode": "escalation",
+      "id": "dreamachine-sigil",
+      "title": "Dreamachine sigil: symmetry order is the Hz",
+      "why": "A sigil cut into a spinning card cylinder; its fold symmetry sets the flicker rate. A perception tool you build in an afternoon.",
+      "firstMove": "In tabula-rosetta create studio/dreamachine/make_template.py (no deploys, no store writes). Output print-ready SVG and PDF for a card cylinder: an A4-landscape strip (29.7 cm, glue tab included), about 9.3 cm across, with N identical sigil cutouts evenly spaced. At 78 rpm the flicker is N x 1.3 Hz, so emit N = 7, 8 and 9 (9.1, 10.4, 11.7 Hz). Draw the sigil in straight strokes on a hex lattice so it cuts clean. Print the Hz table and a photosensitive-epilepsy warning on the sheet. Bench test: 78 rpm turntable, small LED inside, eyes closed.",
+      "mode": "collision",
       "ring": 1,
-      "reachDays": 4,
+      "reachDays": 5,
       "surprise": 4,
-      "money": 3,
+      "money": 1,
       "fuel": [
         "worlds",
-        "outside",
-        "ledger"
+        "outside"
       ],
       "tools": [
-        "Gmail",
-        "GitHub"
+        "Python"
       ],
       "sources": [
         {
-          "label": "Commissioner membership model (not opened)",
-          "url": "https://www.commissioner.us/membership2026"
+          "label": "Gysin and Sommerville, Dreamachine (ZKM) (not opened)",
+          "url": "https://zkm.de/en/node/8153"
         }
       ],
-      "spends": "Gmail drafts only; sending asks first",
+      "spends": "turntable and a lamp, about $20",
       "isWildcard": false,
+      "isMoney": false,
+      "doubt": "Flicker at 8 to 13 Hz can trigger seizures in photosensitive people. The warning is a floor, not a fix, and I cannot tell you how it feels: you have to spin one.",
       "status": "open",
-      "round": 1,
-      "createdAt": "2026-10-08T04:40:00Z"
+      "round": 2,
+      "createdAt": "2026-10-08T17:10:00Z"
     },
     {
       "id": "dead-site-funerals",
@@ -81,7 +84,7 @@
       "ring": 1,
       "reachDays": 4,
       "surprise": 5,
-      "money": 2,
+      "money": 1,
       "fuel": [
         "worlds",
         "toolbox"
@@ -93,9 +96,42 @@
       "sources": [],
       "spends": "deploy asks first",
       "isWildcard": false,
+      "isMoney": false,
+      "doubt": "Funny for an afternoon. Whether anyone would pay to bury a project is untested, and the list of dead projects comes from a doc that may be out of date.",
       "status": "open",
-      "round": 1,
-      "createdAt": "2026-10-08T04:40:00Z"
+      "round": 2,
+      "createdAt": "2026-10-08T17:10:00Z"
+    },
+    {
+      "id": "sigil-gun-sticker",
+      "title": "Sigil Gun becomes an actual gun",
+      "why": "A handheld that prints a sigil sticker from any typed wish. The print line becomes a tool, and the glyph becomes a verb.",
+      "firstMove": "In tabula-rosetta, build work/sigil-gun-label/index.html: type a wish, collapse its letters into one angular illegible glyph (Spare's method, no mandala), render it 1-bit at 384px wide for a 48mm thermal sticker at 203dpi. Save PNGs. If you own or buy a mini thermal sticker printer (Phomemo-class, roughly $30 to $80), print 10, stick them up and photograph the results. Borrow glyph code from the 137-cipher Vercel project if useful. No store writes, no deploys.",
+      "mode": "escalation",
+      "ring": 1,
+      "reachDays": 3,
+      "surprise": 4,
+      "money": 1,
+      "fuel": [
+        "worlds",
+        "toolbox"
+      ],
+      "tools": [
+        "GitHub"
+      ],
+      "sources": [
+        {
+          "label": "Spare's sigil method (not opened)",
+          "url": "https://en.wikipedia.org/wiki/Sigil_(magic)"
+        }
+      ],
+      "spends": "printer $30 to $80, optional",
+      "isWildcard": false,
+      "isMoney": false,
+      "doubt": "Everything rides on the glyph generator being good; a bad one is a toy. Do the screen version first and buy the printer only if the glyphs earn it.",
+      "status": "open",
+      "round": 2,
+      "createdAt": "2026-10-08T17:10:00Z"
     },
     {
       "id": "stargate-sigils",
@@ -106,7 +142,7 @@
       "ring": 1,
       "reachDays": 5,
       "surprise": 4,
-      "money": 2,
+      "money": 1,
       "fuel": [
         "worlds",
         "outside",
@@ -127,23 +163,24 @@
       ],
       "spends": "Adobe usage on your plan",
       "isWildcard": false,
+      "isMoney": false,
+      "doubt": "Redaction art has a long lineage; the sigil strike is the new part. I have not tested whether the Adobe tools cope with a scanned 40-page file, and you must download the PDF yourself.",
       "status": "open",
-      "round": 1,
-      "createdAt": "2026-10-08T04:40:00Z"
+      "round": 2,
+      "createdAt": "2026-10-08T17:10:00Z"
     },
     {
-      "id": "three-shadows",
-      "title": "Three Shadows: a tarot spread as one object",
-      "why": "One 3D object casts Past, Present and Future as three sigil shadows. On a slow turntable the reading performs itself.",
-      "firstMove": "In tabula-rosetta create studio/three-shadows/index.html, a single-file Three.js page, no deploy. Take three 64x64 binary silhouettes (a spiral, a triangle in a circle, a cross; later your own symbols). Carve a 64-cubed voxel grid by intersecting the three extrusions along X, Y and Z. Light it from three orthographic directions onto three walls and print the shadow match percent per wall. Add STL export. Report which silhouette sets conflict and how to bend the glyphs to fit.",
-      "mode": "collision",
-      "ring": 2,
-      "reachDays": 12,
+      "id": "channel-37-dome",
+      "title": "Channel 37: a dome show on the dark frequency",
+      "why": "US TV channel 37 has reportedly been kept dark since 1963 so astronomers can listen. A dome piece on the empty channel, under your number.",
+      "firstMove": "In tabula-rosetta, prototype prototypes/channel-37-dome with Three.js: a Platonic-solid and 4D-projection piece seen through a fisheye dome camera, on a 10-minute timeline that collapses a rotating tesseract to one line while band hiss drifts in and out. Export a 4096px fisheye test frame and a browser dome preview. First, check the channel-37 claim yourself: it is the hook, and I could not open the source.",
+      "mode": "escalation",
+      "ring": 3,
+      "reachDays": 7,
       "surprise": 5,
-      "money": 2,
+      "money": 1,
       "fuel": [
         "worlds",
-        "toolbox",
         "outside"
       ],
       "tools": [
@@ -151,75 +188,58 @@
       ],
       "sources": [
         {
-          "label": "Mitra and Pauly, Shadow Art, SIGGRAPH Asia 2009 (from memory, not opened)",
-          "url": "https://graphics.stanford.edu/~niloy/research/shadowArt/shadowArt_sigA_09.html"
+          "label": "Channel 37 and radio astronomy (not opened)",
+          "url": "https://www.universetoday.com/articles/the-curious-channel-37-must-see-tv-for-radio-astronomy"
+        },
+        {
+          "label": "FULLDOME OnDemand, producers (not opened)",
+          "url": "https://fulldomeondemand.thespacewriter.com/producers.html"
         }
       ],
       "spends": "",
-      "isWildcard": false,
-      "status": "open",
-      "round": 1,
-      "createdAt": "2026-10-08T04:40:00Z"
-    },
-    {
-      "id": "room-portraits",
-      "title": "Room portraits: ask the room, get testimony",
-      "why": "Strangers send room tone; you return what the space says: audio stems and a printed testimony. Post-animism, billed by the room.",
-      "firstMove": "Test on your own studio first. Record 10 minutes of its room tone at 3 a.m. on your phone. Call adobe_mandatory_init, add the file with asset_add_file, run media_enhance_speech (it splits speech, background and reverb), then media_summarize on the speech stem even if it is only noise. Log what each stem returns, verbatim. Speculation: the separator may pull voice-shaped artifacts out of silence; keep whatever is odd. Then markdown_to_pdf a one-page testimony. No store writes.",
-      "mode": "wrongtool",
-      "ring": 3,
-      "reachDays": 4,
-      "surprise": 5,
-      "money": 2,
-      "fuel": [
-        "worlds",
-        "toolbox"
-      ],
-      "tools": [
-        "Adobe for creativity",
-        "Google Drive"
-      ],
-      "sources": [
-        {
-          "label": "Pareidolia (not opened)",
-          "url": "https://en.wikipedia.org/wiki/Pareidolia"
-        }
-      ],
-      "spends": "Adobe usage on your plan",
       "isWildcard": true,
+      "isMoney": false,
+      "doubt": "The channel-37 fact comes from memory and one unopened search result: verify it before building on it. Dome shows are a slow, niche market, and I do not know your relationship to the number.",
       "status": "open",
-      "round": 1,
-      "createdAt": "2026-10-08T04:40:00Z"
+      "round": 2,
+      "createdAt": "2026-10-08T17:10:00Z"
     }
   ],
   "bench": [
+    {
+      "title": "37 Moves: patrons buy a turn, not a print",
+      "seer": "escalator",
+      "mode": "escalation",
+      "why": "37 seats at $1,370; each patron buys one irreversible move on a Pink TV board.",
+      "held": "The bigger money bet. Needs 37 buyers you may not have; Stop Me needs one."
+    },
+    {
+      "title": "Three Shadows: a tarot spread as one object",
+      "seer": "collider",
+      "mode": "collision",
+      "why": "One 3D object casts Past, Present and Future as three sigil shadows.",
+      "held": "Strong and strange. Held back only because three collisions was too many."
+    },
+    {
+      "title": "Room portraits: ask the room, get testimony",
+      "seer": "wrongtool",
+      "mode": "wrongtool",
+      "why": "Strangers send room tone; you return audio stems and a printed testimony.",
+      "held": "Round 1's wildcard. Channel 37 fits the brand better; bring this back for stranger."
+    },
+    {
+      "title": "A station on twelve sets only",
+      "seer": "escalator",
+      "mode": "escalation",
+      "why": "Pink TV's rarest station lives on 12 numbered pink receivers.",
+      "held": "Shelved for round 3 as a wildcard; needs about $200 of parts."
+    },
     {
       "title": "Rent the dark paintings to cameras",
       "seer": "scout",
       "mode": "inversion",
       "why": "Film and TV rent pre-cleared art at about 15% of retail. A revenue channel that needs no audience.",
       "held": "Runner-up. The Dopesick figures came from a snippet I could not open."
-    },
-    {
-      "title": "Sigil Gun becomes an actual gun",
-      "seer": "escalator",
-      "mode": "escalation",
-      "why": "A handheld that prints a sigil sticker from any typed wish. About $30 to $80 and 3 days to a photograph.",
-      "held": "Runner-up. Cheapest way to a physical object; money is speculative."
-    },
-    {
-      "title": "Dreamachine sigil: symmetry order is the Hz",
-      "seer": "collider",
-      "mode": "collision",
-      "why": "A sigil cut into a spinning card cylinder; its fold symmetry sets the flicker rate.",
-      "held": "Strong, but a photosensitivity warning comes first and the buyer pool is small."
-    },
-    {
-      "title": "A station on twelve sets only",
-      "seer": "escalator",
-      "mode": "escalation",
-      "why": "Pink TV's rarest station lives on 12 numbered pink receivers. $2,400 each.",
-      "held": "The best wildcard that did not win. Needs about $200 of parts."
     },
     {
       "title": "A Haunting, billed monthly",

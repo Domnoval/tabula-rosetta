@@ -17,6 +17,8 @@ export type Path = {
   sources: { label: string; url: string }[]
   spends: string
   isWildcard: boolean
+  isMoney: boolean
+  doubt: string
   status: Status
   round: number
   createdAt: string
@@ -29,6 +31,7 @@ export type Now = {
   convenedAt: string
   council: string[]
   trigger: string
+  question: string
 }
 
 export type Field = { now: Now; paths: Path[] }

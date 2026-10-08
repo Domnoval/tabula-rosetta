@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from 'claude-code/testing'
 
-import { buildSense, clip, digest, markPicked, ordered, parseField, parseSense, renderField } from '../hooks/lib'
+import { buildSense, clip, digest, dollars, markPicked, ordered, parseField, parseSense, renderField } from '../hooks/lib'
 
 const path = (id: string, over: Record<string, unknown> = {}) => ({
   id,
@@ -17,6 +17,8 @@ const path = (id: string, over: Record<string, unknown> = {}) => ({
   sources: [{ label: 'src', url: 'https://example.com' }],
   spends: '',
   isWildcard: false,
+  isMoney: false,
+  doubt: `Doubt ${id}`,
   status: 'open',
   round: 1,
   createdAt: '2026-10-08T00:00:00Z',
@@ -31,6 +33,7 @@ const FIELD = JSON.stringify({
     convenedAt: '2026-10-08T00:00:00Z',
     council: ['collider', 'ledger'],
     trigger: 'asked',
+    question: 'Has anyone ever paid you for a painting?',
   },
   paths: [
     path('a', { surprise: 2 }),
@@ -78,6 +81,25 @@ describe('lib', () => {
     expect(out).toContain('⚑ 40 credits')
     expect(out).toContain('→ Do the b thing now.')
     expect(out).toContain('/next convene')
+    expect(out).toContain('? Doubt b')
+    expect(out).toContain('The Oracle asks: Has anyone ever paid you for a painting?')
+  })
+
+  test('money shows only where it is the point', () => {
+    expect(dollars(3)).toBe('$$$')
+    expect(dollars(2)).toBe('$$')
+    expect(dollars(1)).toBe('·')
+    expect(dollars(0)).toBe('·')
+  })
+
+  test('parseField carries doubt, the money flag and the question', () => {
+    const field = parseField(JSON.stringify({
+      now: { headline: 'h', question: 'q?' },
+      paths: [path('m', { isMoney: true, doubt: 'One sale proves one buyer.' })],
+    }))
+
+    expect(field?.now.question).toBe('q?')
+    expect(field?.paths[0]).toMatchObject({ isMoney: true, doubt: 'One sale proves one buyer.' })
   })
 
   test('markPicked flips one status and leaves the rest', () => {

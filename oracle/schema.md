@@ -16,6 +16,7 @@ Doc `now`:
 | `convenedAt` | ISO string | |
 | `council` | string[] | Names of the seers that ran |
 | `trigger` | `'fork' \| 'asked' \| 'interview'` | Why it spoke |
+| `question` | string, at most 200 chars | The one thing the Oracle needs the artist to answer to judge better. Optional |
 
 Doc `lens`: `{ center: string, worlds: string[], surprise: string[], slop: string[], distance: string }`. Read-only display of `oracle/lens.md`.
 
@@ -33,12 +34,14 @@ One doc per path, doc id = slug.
 | `ring` | `1 \| 2 \| 3` | 1 visible result this week, 2 a stretch, 3 another planet |
 | `reachDays` | number | Days to the first visible result |
 | `surprise` | 1 to 5 | How unlikely the person was to think of it |
-| `money` | 0 to 3 | 0 none, 3 direct revenue |
+| `money` | 0 to 3 | 0 none, 3 direct revenue. Score honestly: the free paths are 0 or 1 |
 | `fuel` | array of `'worlds' \| 'toolbox' \| 'outside' \| 'picks' \| 'ledger'` | What fed the idea |
 | `tools` | string[] | Named tools and connectors the path uses |
 | `sources` | `{ label: string, url: string }[]` | Real precedents, with links |
 | `spends` | string, at most 60 chars | A short flag for what the first move costs or needs a yes for: credits, deploys, publishing, store writes. Empty if the first move is free |
 | `isWildcard` | boolean | Exactly one per round |
+| `isMoney` | boolean | Exactly one per round: the path that floats around money. Every other path is free of the money test |
+| `doubt` | string, at most 200 chars | The strongest honest objection to this path. Required, and never a compliment in disguise |
 | `status` | `'open' \| 'picked' \| 'slop' \| 'parked' \| 'done'` | |
 | `round` | number | |
 | `createdAt` | ISO string | |
@@ -63,4 +66,4 @@ Written by the page, read by the council on its next run. Auto id.
 
 ## Order
 
-The mod and the page list live paths (open and picked) in the same order: surprise plus money, highest first, then ring (nearer first), then money. The wildcard is always last.
+The mod and the page list live paths (open and picked) in the same order: surprise, highest first, then ring (nearer first), then money. The wildcard is always last. Money is shown (`$$`, `$$$`) only at 2 or more, which in practice is the one `isMoney` path.

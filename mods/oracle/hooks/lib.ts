@@ -113,6 +113,8 @@ export function parsePath(raw: unknown): Path | null {
       : [],
     spends: str(r.spends, 60),
     isWildcard: r.isWildcard === true,
+    isMoney: r.isMoney === true,
+    doubt: str(r.doubt, 220),
     status: STATUSES.find(s => s === r.status) ?? 'open',
     round: num(r.round, 0, 100000, 1),
     createdAt: str(r.createdAt, 40),
@@ -146,6 +148,7 @@ export function parseField(text: string): Field | null {
       convenedAt: str(now.convenedAt, 40),
       council: Array.isArray(now.council) ? now.council.filter((s): s is string => typeof s === 'string') : [],
       trigger: str(now.trigger, 20),
+      question: str(now.question, 220),
     },
     paths: paths.flatMap(p => parsePath(p) ?? []),
   }
@@ -155,13 +158,13 @@ export function parseField(text: string): Field | null {
 // numbers `/next N` and the band share do not shift under the artist.
 export function ordered(field: Field): Path[] {
   const open = field.paths.filter(p => p.status === 'open' || p.status === 'picked')
-  // Strangeness plus money: while the center of gravity is earning, a strange idea that sells outranks one that does not.
-  const rank = (a: Path, b: Path) => b.surprise + b.money - (a.surprise + a.money) || a.ring - b.ring || b.money - a.money
+  const rank = (a: Path, b: Path) => b.surprise - a.surprise || a.ring - b.ring || b.money - a.money
 
   return [...open.filter(p => !p.isWildcard).sort(rank), ...open.filter(p => p.isWildcard)]
 }
 
-export const dollars = (money: number) => (money <= 0 ? '·' : '$'.repeat(Math.min(3, Math.round(money))))
+// Money shows only where it is the point: 2 and up, which in practice is the one money path.
+export const dollars = (money: number) => (money >= 2 ? '$'.repeat(Math.min(3, Math.round(money))) : '·')
 
 export function renderField(field: Field): string {
   const rows = ordered(field).map((p, i) => {
@@ -174,12 +177,14 @@ export function renderField(field: Field): string {
       `   ${p.title}`,
       `   ${p.why}`,
       `   → ${p.firstMove}`,
+      ...(p.doubt === '' ? [] : [`   ? ${p.doubt}`]),
     ].join('\n')
   })
 
   return [
     `◈ ORACLE · round ${field.now.round}${field.now.headline === '' ? '' : ` · ${field.now.headline}`}`,
     ...(rows.length === 0 ? ['No open paths. /next convene calls a council.'] : rows),
+    ...(field.now.question === '' ? [] : [`◈ The Oracle asks: ${field.now.question}`]),
     '/next N loads a first move · /next N go sends it · /next convene calls a new council',
   ].join('\n')
 }

@@ -270,6 +270,11 @@ details.earlier[open] summary{color:var(--ink)}
 .badge.done{border-color:var(--sig);color:var(--sig)}
 .queued{font:500 11.5px/1.4 var(--f-mono);color:var(--ink2)}
 .dr-why{font:500 21px/1.22 var(--f-display);letter-spacing:.01em;color:var(--ink);text-wrap:pretty}
+.dr-doubt{font:400 12.5px/1.55 var(--f-mono);color:var(--ink2);border-left:2px solid var(--line2);padding:2px 0 2px 10px;max-width:62ch}
+.dr-doubt b{font:700 12px/1 var(--f-display);letter-spacing:.2em;text-transform:uppercase;color:var(--ink);margin-right:8px}
+.dr-money{display:inline-block;align-self:flex-start;font:700 13px/1 var(--f-display);letter-spacing:.2em;text-transform:uppercase;border:1px solid var(--sig);color:var(--sig);padding:6px 9px}
+.askback{font:500 13px/1.5 var(--f-mono);color:var(--ink);border:1px solid var(--line2);padding:8px 10px;max-width:62ch;margin-top:8px}
+.askback b{font:700 12px/1 var(--f-display);letter-spacing:.2em;text-transform:uppercase;color:var(--sig);margin-right:8px}
 .mv{position:relative;border:1px solid var(--line2);background:var(--bg)}
 .mv pre{margin:0;padding:10px 12px;font:400 12.5px/1.6 var(--f-mono);color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere;max-height:214px;overflow:auto;user-select:text;-webkit-user-select:text}
 .mv-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 5px 5px 12px;border-bottom:1px solid var(--line)}
@@ -484,6 +489,7 @@ dialog.lens::backdrop{background:var(--scrim)}
       <section class="rd-block rd-live rd-sit-block" aria-labelledby="rd-sit-h">
         <h2 class="lbl" id="rd-sit-h">Situation</h2>
         <p class="sit" id="rd-sit"></p>
+        <p class="askback" id="rd-q" hidden><b>Asks</b><span id="rd-q-t"></span></p>
       </section>
       <section class="rd-block rd-live" aria-labelledby="rd-modes-h">
         <h2 class="lbl" id="rd-modes-h">Four modes</h2>
@@ -503,6 +509,7 @@ dialog.lens::backdrop{background:var(--scrim)}
         <span class="kick" id="nb-kick">Now</span>
         <h1 id="nb-h"></h1>
         <p class="sit" id="nb-sit"></p>
+        <p class="askback" id="nb-q" hidden><b>Asks</b><span id="nb-q-t"></span></p>
       </div>
       <div class="mapview" id="mapview">
         <div class="dial" id="dial">
@@ -528,7 +535,9 @@ dialog.lens::backdrop{background:var(--scrim)}
           <p class="dr-wild" id="dr-wild" hidden><svg width="22" height="14" viewBox="-11 -7 22 14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M-9 -4H3M-9 0H9M-9 4H1" stroke-dasharray="3 2"/></svg>Out of band, a wildcard</p>
           <h2 class="dr-title" id="dr-title" tabindex="-1"></h2>
           <div class="dr-state"><span class="badge" id="dr-badge"></span><span class="queued" id="dr-queued"></span></div>
+          <p class="dr-money" id="dr-money" hidden>The money seat</p>
           <p class="dr-why" id="dr-why"></p>
+          <p class="dr-doubt" id="dr-doubt" hidden><b>Doubt</b><span id="dr-doubt-t"></span></p>
           <dl class="facts" id="dr-facts"></dl>
           <section class="dr-sec" aria-labelledby="dr-mv-h">
             <h3 class="lbl" id="dr-mv-h">First move</h3>
@@ -680,7 +689,7 @@ function normPath(id, d) {
     surprise: Math.round(num(d.surprise, 1, 5, 1)), money: Math.round(num(d.money, 0, 3, 0)),
     fuel: arr(d.fuel), tools: arr(d.tools),
     sources: (Array.isArray(d.sources) ? d.sources : []).map(s => ({ label: str(s && s.label, 140).trim(), url: safeUrl(s && s.url) })).filter(s => s.label || s.url),
-    spends: str(d.spends, 500).trim(), isWildcard: d.isWildcard === true,
+    spends: str(d.spends, 500).trim(), isWildcard: d.isWildcard === true, isMoney: d.isMoney === true, doubt: str(d.doubt, 500).trim(),
     status: STATUSES.includes(d.status) ? d.status : 'open', round: num(d.round, 0, 1e6, 0), createdAt: str(d.createdAt, 40)
   };
 }
@@ -691,7 +700,7 @@ function normNow(d) {
     headline: str(d.headline, 240).trim(), situation: str(d.situation, 800).trim(),
     round: Number.isFinite(Number(d.round)) ? Number(d.round) : null, convenedAt: str(d.convenedAt, 40),
     council: Array.isArray(d.council) ? d.council.filter(x => typeof x === 'string').map(x => x.slice(0, 40)) : [],
-    trigger: str(d.trigger, 24)
+    trigger: str(d.trigger, 24), question: str(d.question, 500).trim()
   };
 }
 function normLens(d) {
@@ -1112,6 +1121,8 @@ function renderHub() {
   $('#nb-h').textContent = ph === 'live' ? ((ST.now && ST.now.headline) || 'No headline filed') : (ph === 'empty' ? 'No signal. Dead air.' : ph === 'nodb' ? 'No line to the archive.' : 'Scanning the band.');
   const sit = ph === 'live' && ST.now ? ST.now.situation : '';
   $('#nb-sit').textContent = sit; $('#nb-sit').hidden = !sit;
+  const qq = ph === 'live' && ST.now ? ST.now.question : '';
+  $('#nb-q-t').textContent = qq; $('#nb-q').hidden = !qq;
 }
 function emptyCard(kind) {
   if (kind === 'nodb') {
@@ -1130,6 +1141,8 @@ function emptyCard(kind) {
 function renderReadout() {
   const ph = ST.phase;
   $('#rd-sit').textContent = (ST.now && ST.now.situation) || 'The council has not filed a situation yet.';
+  const rq = ph === 'live' && ST.now ? ST.now.question : '';
+  $('#rd-q-t').textContent = rq; $('#rd-q').hidden = !rq;
   const empty = $('#rd-empty'); empty.replaceChildren();
   if (ph === 'empty' || ph === 'nodb') empty.append(emptyCard(ph));
   // modes
@@ -1215,6 +1228,8 @@ function renderDrawer(force) {
   const badge = $('#dr-badge'); badge.className = 'badge ' + p.status; badge.textContent = STATUS_LABEL[p.status];
   $('#dr-queued').textContent = q.length ? 'Council has not read: ' + q.map(s => ({ pick: 'tune in', slop: 'static', deeper: 'deeper', park: 'park' }[s.type] || s.type)).join(', ') : '';
   $('#dr-why').textContent = p.why; $('#dr-why').hidden = !p.why;
+  $('#dr-money').hidden = !p.isMoney;
+  $('#dr-doubt').hidden = !p.doubt; $('#dr-doubt-t').textContent = p.doubt;
   $('#dr-move').textContent = p.firstMove || '(no first move filed)';
   const cp = $('#dr-copy'); if (!ST.copyT) { cp.textContent = 'Copy'; cp.classList.remove('ok'); }
   $('#dr-facts').replaceChildren(

@@ -43,19 +43,23 @@ Candidates arrive as JSON from the seers. Kill, then compose.
 
 **Compose the round: exactly six paths**
 - Five reachable (ring 1 or 2) and one wildcard (ring 3, `isWildcard: true`). The wildcard is the single strangest surviving idea that still has a first move runnable now.
-- At least three paths with `money` of 2 or more. The wildcard may be 0 to 3, but state it honestly.
+- Exactly one money path (`isMoney: true`): the best money bet of the round, picked for its chance of producing real evidence, not for being exciting. Every other path is judged on strangeness and fit with the Lens worlds, and may earn nothing. Score `money` honestly on all six (0 or 1 for the free ones); never inflate a score to justify a path.
 - All four modes appear. No seer supplies more than two paths.
-- Rank by surprise plus money, then reach (nearer first), then money. While the Lens center is earning, a strange idea that sells outranks one that does not, and a fast safe path still loses to a fast strange one.
-- Weigh what the ledger found. If the store has no audience, paths that need strangers to arrive lose to paths that sell to people the artist already knows. A path that depends on a warm list should fold the list-finding into its own first move.
+- Rank by surprise, then reach (nearer first), then money. A fast safe path loses to a fast strange one.
+- Weigh what the ledger found when choosing the money path only. If the store has no audience, a money path that needs strangers to arrive loses to one that sells to people the artist already knows.
 - Keep the runner-ups. Everything good that lost goes in `bench` with one line on why it was held. Bench items are not shown; the next council may promote one.
 
 **Rewrite for the artist.** Fix `title` (at most 48 chars), `why` (the payoff in at most 140 chars), and `firstMove` (a complete instruction that can be sent as written, naming the real files and tools). Keep the voice: direct, dry, a little dark, no fluff, no placating, no emoji. Flag `spends` honestly: credits, deploys, publishing and store writes ask first under this repo's pause list.
+
+**Doubt, every path.** Write each path's `doubt`: the strongest honest objection, in one or two sentences (at most 200 chars). What is most likely to be wrong with it, what it assumes that nobody has checked, what would make it a waste. No path leaves without one. Do not flatter: say a path is weak when it is, and say which assumptions are guesses. If a fact comes from memory or from a source that could not be opened, say so in the doubt.
+
+**The question.** Each round asks the artist one real question (`now.question`, at most 200 chars): the thing that would change the judgment most and cannot be read from the repo or the stores. Also put it to them in chat. Learn from the answer and carry it into the Lens when it changes a rule.
 
 **The headline** is one line, at most 120 chars, that says what the Oracle sees about the moment. It is the thing a sharp collaborator would say after reading the room, not a summary of the paths.
 
 ## Writing
 
-1. `oracle/field.json`: `{ "now": {...}, "paths": [...], "bench": [...] }` per `oracle/schema.md`. Round number is the previous round plus one. Paths from earlier rounds that are `picked` or `parked` stay in the file; `open` ones from earlier rounds are dropped.
+1. `oracle/field.json`: `{ "now": {...}, "paths": [...], "bench": [...] }` per `oracle/schema.md` (every path has `doubt`, exactly one has `isMoney`, `now.question` is set). Round number is the previous round plus one. Paths from earlier rounds that are `picked` or `parked` stay in the file; `open` ones from earlier rounds are dropped.
 2. The live page database: load the tool with ToolSearch (`select:ArtifactData`), then one `batch` write with `meta/now`, `meta/lens` and the six `paths` docs. Set earlier open paths to `parked` only if the artist touched them; otherwise delete them. The page URL is recorded in `oracle/page/URL` (create it the first time).
 3. Mark each signal you consumed `handled: true`.
 
