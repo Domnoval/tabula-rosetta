@@ -151,11 +151,12 @@ export function parseField(text: string): Field | null {
   }
 }
 
-// Live paths in display order: strangest first, the wildcard last. A pick stays listed so the
+// Live paths in display order: strongest first, the wildcard last. A pick stays listed so the
 // numbers `/next N` and the band share do not shift under the artist.
 export function ordered(field: Field): Path[] {
   const open = field.paths.filter(p => p.status === 'open' || p.status === 'picked')
-  const rank = (a: Path, b: Path) => b.surprise - a.surprise || a.ring - b.ring || b.money - a.money
+  // Strangeness plus money: while the center of gravity is earning, a strange idea that sells outranks one that does not.
+  const rank = (a: Path, b: Path) => b.surprise + b.money - (a.surprise + a.money) || a.ring - b.ring || b.money - a.money
 
   return [...open.filter(p => !p.isWildcard).sort(rank), ...open.filter(p => p.isWildcard)]
 }

@@ -1,0 +1,260 @@
+{
+  "now": {
+    "headline": "Shopify has never sold a thing. Sell to ten people you know before ten thousand you don't.",
+    "situation": "Floating, pivoting back to making money via art. Shopify shows 0 orders and $0 ever: 17 products, 228 sessions in 90 days, 5 carts started in 12 months and none completed. $2,265 of signed prints sit in archived listings while the live variants show 0, the originals collection is empty, and the Sigil Gun product is still a draft. Real money may live on pay.the37thmove.com instead.",
+    "round": 1,
+    "convenedAt": "2026-10-08T04:40:00Z",
+    "council": [
+      "collider",
+      "inverter",
+      "escalator",
+      "wrongtool",
+      "ledger",
+      "scout"
+    ],
+    "trigger": "interview"
+  },
+  "paths": [
+    {
+      "id": "stop-me",
+      "title": "Stop Me: the buyer decides when it's done",
+      "why": "Price climbs as the painting gets made; whoever buys freezes it as found. One real sale, no traffic needed.",
+      "firstMove": "In tabula-rosetta, on a new branch work/stop-me, build work/stop-me/index.html, one self-contained page: a photo slot for the canvas, four stages (ground 370, underpainting 740, halfway 1110, resolved 1480 USD), a live price that only moves up, a Buy placeholder. Write work/stop-me/RULES.md: a purchase ends the painting that day, signed as found, shipped with a studio card naming the stage; no stage sells before its photo exists. Publish nothing. Then draft, for my approval, the Shopify product 'Stop Me, Painting No. 1' and a note to past collectors.",
+      "mode": "inversion",
+      "ring": 1,
+      "reachDays": 6,
+      "surprise": 4,
+      "money": 3,
+      "fuel": [
+        "ledger",
+        "worlds",
+        "toolbox"
+      ],
+      "tools": [
+        "Shopify",
+        "GitHub"
+      ],
+      "sources": [],
+      "spends": "Shopify draft asks first",
+      "isWildcard": false,
+      "status": "open",
+      "round": 1,
+      "createdAt": "2026-10-08T04:40:00Z"
+    },
+    {
+      "id": "37-moves",
+      "title": "37 Moves: patrons buy a turn, not a print",
+      "why": "Commissions become 37 seats in a slow game on Pink TV. Each move is irreversible; the final board is the work.",
+      "firstMove": "In tabula-rosetta, build work/37-moves/index.html: one dark page, a 37-cell board, cell 1 open, 36 sealed, each labeled with a Pink TV station name. Cell 1 states the deal: $1,370 buys one commissioned work, one irreversible move on the board, one station named after the mover. Then, read-only, use Gmail search_threads (payment receipts, commission asks) to find up to 10 warm names and create_draft one personal invitation for each. Drafts only. Send nothing, create no products.",
+      "mode": "escalation",
+      "ring": 1,
+      "reachDays": 4,
+      "surprise": 4,
+      "money": 3,
+      "fuel": [
+        "worlds",
+        "outside",
+        "ledger"
+      ],
+      "tools": [
+        "Gmail",
+        "GitHub"
+      ],
+      "sources": [
+        {
+          "label": "Commissioner membership model (not opened)",
+          "url": "https://www.commissioner.us/membership2026"
+        }
+      ],
+      "spends": "Gmail drafts only; sending asks first",
+      "isWildcard": false,
+      "status": "open",
+      "round": 1,
+      "createdAt": "2026-10-08T04:40:00Z"
+    },
+    {
+      "id": "dead-site-funerals",
+      "title": "Funerals for dead websites",
+      "why": "Software has no funerals. Sell an epitaph, a sigil seal and a tombstone for dead projects. Your own Vercel graveyard is the demo.",
+      "firstMove": "In tabula-rosetta create studio/necropolis/index.html, one file, no deploy. Read docs/DEPLOY.md and make one tombstone each for project-f8yrf, workspace (whose whole content is the word probe), vite-react, playground2.55, tonic-quantum-leap, and one family stone for the-37-th-move 1.4 to 1.8. Each stone: name, last-deploy date, one dry cause of death, and a seal: the name's letters on a 37-node hex lattice drawn as one stroke. Exclude kurts-* and anything marked keep. Delete and archive nothing. Add a Bury yours link to pay.the37thmove.com.",
+      "mode": "collision",
+      "ring": 1,
+      "reachDays": 4,
+      "surprise": 5,
+      "money": 2,
+      "fuel": [
+        "worlds",
+        "toolbox"
+      ],
+      "tools": [
+        "GitHub",
+        "Vercel"
+      ],
+      "sources": [],
+      "spends": "deploy asks first",
+      "isWildcard": false,
+      "status": "open",
+      "round": 1,
+      "createdAt": "2026-10-08T04:40:00Z"
+    },
+    {
+      "id": "stargate-sigils",
+      "title": "Strike the Stargate files into sigils",
+      "why": "Declassified remote-viewing files redacted to one surviving sentence, struck into a glyph. Zine plus prints from a public-domain source.",
+      "firstMove": "Download one declassified Star Gate remote-viewing session PDF yourself from the CIA reading room (this sandbox cannot reach cia.gov) into work/stargate/source.pdf. Call adobe_mandatory_init, run pdf_ocr then pdf_to_markdown. Write one intent sentence; those words survive. Redact every other word with pdf_page_organize (permanent, so on a copy). Apply Spare's letter-strike to the survivors for the glyph. Finish with pdf_to_image previews for a 12-page zine. Stop at previews: no store writes.",
+      "mode": "wrongtool",
+      "ring": 1,
+      "reachDays": 5,
+      "surprise": 4,
+      "money": 2,
+      "fuel": [
+        "worlds",
+        "outside",
+        "toolbox"
+      ],
+      "tools": [
+        "Adobe for creativity"
+      ],
+      "sources": [
+        {
+          "label": "CIA reading room, Stargate (not opened)",
+          "url": "https://www.cia.gov/readingroom/search/site/stargate"
+        },
+        {
+          "label": "Spare's sigil method (not opened)",
+          "url": "https://en.wikipedia.org/wiki/Sigil_(magic)"
+        }
+      ],
+      "spends": "Adobe usage on your plan",
+      "isWildcard": false,
+      "status": "open",
+      "round": 1,
+      "createdAt": "2026-10-08T04:40:00Z"
+    },
+    {
+      "id": "three-shadows",
+      "title": "Three Shadows: a tarot spread as one object",
+      "why": "One 3D object casts Past, Present and Future as three sigil shadows. On a slow turntable the reading performs itself.",
+      "firstMove": "In tabula-rosetta create studio/three-shadows/index.html, a single-file Three.js page, no deploy. Take three 64x64 binary silhouettes (a spiral, a triangle in a circle, a cross; later your own symbols). Carve a 64-cubed voxel grid by intersecting the three extrusions along X, Y and Z. Light it from three orthographic directions onto three walls and print the shadow match percent per wall. Add STL export. Report which silhouette sets conflict and how to bend the glyphs to fit.",
+      "mode": "collision",
+      "ring": 2,
+      "reachDays": 12,
+      "surprise": 5,
+      "money": 2,
+      "fuel": [
+        "worlds",
+        "toolbox",
+        "outside"
+      ],
+      "tools": [
+        "Three.js viewer"
+      ],
+      "sources": [
+        {
+          "label": "Mitra and Pauly, Shadow Art, SIGGRAPH Asia 2009 (from memory, not opened)",
+          "url": "https://graphics.stanford.edu/~niloy/research/shadowArt/shadowArt_sigA_09.html"
+        }
+      ],
+      "spends": "",
+      "isWildcard": false,
+      "status": "open",
+      "round": 1,
+      "createdAt": "2026-10-08T04:40:00Z"
+    },
+    {
+      "id": "room-portraits",
+      "title": "Room portraits: ask the room, get testimony",
+      "why": "Strangers send room tone; you return what the space says: audio stems and a printed testimony. Post-animism, billed by the room.",
+      "firstMove": "Test on your own studio first. Record 10 minutes of its room tone at 3 a.m. on your phone. Call adobe_mandatory_init, add the file with asset_add_file, run media_enhance_speech (it splits speech, background and reverb), then media_summarize on the speech stem even if it is only noise. Log what each stem returns, verbatim. Speculation: the separator may pull voice-shaped artifacts out of silence; keep whatever is odd. Then markdown_to_pdf a one-page testimony. No store writes.",
+      "mode": "wrongtool",
+      "ring": 3,
+      "reachDays": 4,
+      "surprise": 5,
+      "money": 2,
+      "fuel": [
+        "worlds",
+        "toolbox"
+      ],
+      "tools": [
+        "Adobe for creativity",
+        "Google Drive"
+      ],
+      "sources": [
+        {
+          "label": "Pareidolia (not opened)",
+          "url": "https://en.wikipedia.org/wiki/Pareidolia"
+        }
+      ],
+      "spends": "Adobe usage on your plan",
+      "isWildcard": true,
+      "status": "open",
+      "round": 1,
+      "createdAt": "2026-10-08T04:40:00Z"
+    }
+  ],
+  "bench": [
+    {
+      "title": "Rent the dark paintings to cameras",
+      "seer": "scout",
+      "mode": "inversion",
+      "why": "Film and TV rent pre-cleared art at about 15% of retail. A revenue channel that needs no audience.",
+      "held": "Runner-up. The Dopesick figures came from a snippet I could not open."
+    },
+    {
+      "title": "Sigil Gun becomes an actual gun",
+      "seer": "escalator",
+      "mode": "escalation",
+      "why": "A handheld that prints a sigil sticker from any typed wish. About $30 to $80 and 3 days to a photograph.",
+      "held": "Runner-up. Cheapest way to a physical object; money is speculative."
+    },
+    {
+      "title": "Dreamachine sigil: symmetry order is the Hz",
+      "seer": "collider",
+      "mode": "collision",
+      "why": "A sigil cut into a spinning card cylinder; its fold symmetry sets the flicker rate.",
+      "held": "Strong, but a photosensitivity warning comes first and the buyer pool is small."
+    },
+    {
+      "title": "A station on twelve sets only",
+      "seer": "escalator",
+      "mode": "escalation",
+      "why": "Pink TV's rarest station lives on 12 numbered pink receivers. $2,400 each.",
+      "held": "The best wildcard that did not win. Needs about $200 of parts."
+    },
+    {
+      "title": "A Haunting, billed monthly",
+      "seer": "escalator",
+      "mode": "escalation",
+      "why": "The console becomes an entity that files a monthly dossier on its owner.",
+      "held": "Recurring revenue, but wants an audience first."
+    },
+    {
+      "title": "A tape that is the only key to the hidden site",
+      "seer": "scout",
+      "mode": "wrongtool",
+      "why": "An edition of 137 VHS tapes whose audio unlocks a hidden station.",
+      "held": "Needs a dubbing quote before it is a path."
+    },
+    {
+      "title": "Nine signed prints, each sale raises the next",
+      "seer": "ledger",
+      "mode": "inversion",
+      "why": "$2,265 of signed prints sit in archived listings while the live variants show 0.",
+      "held": "The stock fact is real and goes in the headline; the rising price is the gimmick."
+    },
+    {
+      "title": "Audit the inbox for everyone who ever paid",
+      "seer": "ledger",
+      "mode": "wrongtool",
+      "why": "Past payers are the warmest buyers.",
+      "held": "Folded into Stop Me and 37 Moves as their first move."
+    },
+    {
+      "title": "Channel 37: a dome show on the empty frequency",
+      "seer": "scout",
+      "mode": "escalation",
+      "why": "US TV channel 37 is kept dark for radio astronomy. A dome show on the dark channel.",
+      "held": "Money 1. The channel-37 fact is the real gift: it is the brand's own number."
+    }
+  ]
+}

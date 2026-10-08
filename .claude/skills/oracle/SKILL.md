@@ -39,13 +39,15 @@ Candidates arrive as JSON from the seers. Kill, then compose.
 - Anything about the Oracle, the session's tooling, or "improve the workflow", unless it is a tool for making or selling art.
 - Anything with no nameable real thing in it (a file, a product, a tool, a person's work with a source).
 - Duplicates of earlier rounds and near-duplicates inside this one. Keep the sharper version.
-- Sources you cannot trust: open at least two of the cited URLs with WebFetch before a path leans on them. Drop any citation you could not confirm.
+- Sources you cannot trust: open at least two of the cited URLs with WebFetch before a path leans on them. Drop any citation you could not confirm. If the environment blocks every outside host (the proxy answers EGRESS_BLOCKED), do not pretend: keep a citation only where it is not load-bearing, label it `(not opened)` in the source label, never state a precedent's numbers as fact in a `why` or `firstMove`, and tell the artist plainly that outside evidence is unverified and which network setting would fix it. A first move must never depend on a host the sandbox cannot reach; say what the artist has to fetch themselves.
 
 **Compose the round: exactly six paths**
 - Five reachable (ring 1 or 2) and one wildcard (ring 3, `isWildcard: true`). The wildcard is the single strangest surviving idea that still has a first move runnable now.
 - At least three paths with `money` of 2 or more. The wildcard may be 0 to 3, but state it honestly.
 - All four modes appear. No seer supplies more than two paths.
-- Rank by surprise first, then by reach, then by money. A fast safe path loses to a fast strange one.
+- Rank by surprise plus money, then reach (nearer first), then money. While the Lens center is earning, a strange idea that sells outranks one that does not, and a fast safe path still loses to a fast strange one.
+- Weigh what the ledger found. If the store has no audience, paths that need strangers to arrive lose to paths that sell to people the artist already knows. A path that depends on a warm list should fold the list-finding into its own first move.
+- Keep the runner-ups. Everything good that lost goes in `bench` with one line on why it was held. Bench items are not shown; the next council may promote one.
 
 **Rewrite for the artist.** Fix `title` (at most 48 chars), `why` (the payoff in at most 140 chars), and `firstMove` (a complete instruction that can be sent as written, naming the real files and tools). Keep the voice: direct, dry, a little dark, no fluff, no placating, no emoji. Flag `spends` honestly: credits, deploys, publishing and store writes ask first under this repo's pause list.
 
@@ -53,7 +55,7 @@ Candidates arrive as JSON from the seers. Kill, then compose.
 
 ## Writing
 
-1. `oracle/field.json`: `{ "now": {...}, "paths": [...] }` per `oracle/schema.md`. Round number is the previous round plus one. Paths from earlier rounds that are `picked` or `parked` stay in the file; `open` ones from earlier rounds are dropped.
+1. `oracle/field.json`: `{ "now": {...}, "paths": [...], "bench": [...] }` per `oracle/schema.md`. Round number is the previous round plus one. Paths from earlier rounds that are `picked` or `parked` stay in the file; `open` ones from earlier rounds are dropped.
 2. The live page database: load the tool with ToolSearch (`select:ArtifactData`), then one `batch` write with `meta/now`, `meta/lens` and the six `paths` docs. Set earlier open paths to `parked` only if the artist touched them; otherwise delete them. The page URL is recorded in `oracle/page/URL` (create it the first time).
 3. Mark each signal you consumed `handled: true`.
 

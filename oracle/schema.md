@@ -37,7 +37,7 @@ One doc per path, doc id = slug.
 | `fuel` | array of `'worlds' \| 'toolbox' \| 'outside' \| 'picks' \| 'ledger'` | What fed the idea |
 | `tools` | string[] | Named tools and connectors the path uses |
 | `sources` | `{ label: string, url: string }[]` | Real precedents, with links |
-| `spends` | string | What it costs, empty if nothing. Credits, deploys, publishing, store writes |
+| `spends` | string, at most 60 chars | A short flag for what the first move costs or needs a yes for: credits, deploys, publishing, store writes. Empty if the first move is free |
 | `isWildcard` | boolean | Exactly one per round |
 | `status` | `'open' \| 'picked' \| 'slop' \| 'parked' \| 'done'` | |
 | `round` | number | |
@@ -57,4 +57,10 @@ Written by the page, read by the council on its next run. Auto id.
 
 ## Repo mirror: `oracle/field.json`
 
-`{ "now": <meta/now>, "paths": [<path>, ...] }`. Written by the council on every run so the mod and any surface without the page can show the same field.
+`{ "now": <meta/now>, "paths": [<path>, ...], "bench": [<bench>, ...] }`. Written by the council on every run so the mod and any surface without the page can show the same field.
+
+`bench` holds the runner-ups the judge held back, so a good idea that lost this round is not lost: `{ title, seer, mode, why, held }` where `held` says in one line why it did not make the six. The page and the mod ignore it; the next council reads it and may promote an item. It is not written to the page database.
+
+## Order
+
+The mod and the page list live paths (open and picked) in the same order: surprise plus money, highest first, then ring (nearer first), then money. The wildcard is always last.
