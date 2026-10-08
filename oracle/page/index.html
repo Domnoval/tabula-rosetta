@@ -1410,6 +1410,145 @@ function renderAsk() {
   else msg.textContent = '';
 }
 
+/* ================= the Oracle's question ================= */
+/* One question a round, answered here. A tap on an option sends that answer at once; own words go as a separate answer.
+   The answered state is read back from the signals, so it survives a reload: the latest choice and the latest words for this
+   questionId. One card exists and moves between two hosts, so it is never on screen, in the tab order or read out twice. */
+const mqConsole = window.matchMedia('(min-width:1200px) and (min-height:600px)');
+const QA = { qid: '', optSig: '', editing: false, sending: '', msg: '', bad: false, local: null };
+const LETTERS = 'ABCD';
+const qc = (() => {
+  const q = h('p', { class: 'qc-q', id: 'qc-q', tabindex: '-1' });
+  const opts = h('div', { class: 'qc-opts', role: 'group', 'aria-labelledby': 'qc-q' });
+  const lab = h('label', { class: 'lbl', for: 'qc-text' });
+  const text = h('textarea', { id: 'qc-text', rows: '1', maxlength: '500', placeholder: 'Type it, Enter sends', autocomplete: 'off' });
+  const send = h('button', { type: 'button', class: 'qc-send', text: 'Send' });
+  const keep = h('button', { type: 'button', class: 'link-btn qc-keep', text: 'Keep my answer' });
+  const ask = h('div', { class: 'qc-ask' }, opts, h('div', { class: 'qc-own' }, lab, h('div', { class: 'qc-row' }, text, send)), keep);
+  const pick = h('p', { class: 'qc-pick' }), said = h('p', { class: 'qc-said' }), note = h('p', { class: 'qc-note' });
+  const change = h('button', { type: 'button', class: 'qc-change', text: 'Change', 'aria-label': 'Change your answer' });
+  const done = h('div', { class: 'qc-done' }, h('span', { class: 'lbl', text: 'Your answer' }), pick, said, h('div', { class: 'qc-foot' }, note, change));
+  const msg = h('p', { class: 'qc-msg', role: 'status', 'aria-live': 'polite' });
+  const el = h('section', { class: 'qcard', 'aria-labelledby': 'qc-h' }, h('h2', { class: 'qc-kick', id: 'qc-h' }, h('span', { class: 'sr', text: 'The Oracle ' }), 'Asks you'), q, ask, done, msg);
+  return { el, q, opts, lab, text, send, keep, ask, pick, said, note, change, done, msg };
+})();
+
+function answerFor(qid) {
+  if (!qid) return null;
+  const list = ST.signals.filter(s => s.type === 'answer' && s.questionId === qid && (s.choice || s.text));
+  const L = QA.local;   // the answer just sent, shown until the subscription brings it back
+  if (L && L.questionId === qid) { if (list.some(s => s.at === L.at && s.choice === L.choice && s.text === L.text)) QA.local = null; else list.push(L); }
+  if (!list.length) return null;
+  list.sort((a, b) => a.at < b.at ? 1 : a.at > b.at ? -1 : 0);
+  const c = list.find(s => s.choice), t = list.find(s => s.text);
+  return { choice: c ? c.choice : '', text: t ? t.text : '', read: list.every(s => s.handled) };
+}
+function sizeQText() { const t = qc.text; t.style.height = 'auto'; if (t.scrollHeight) t.style.height = Math.min(96, t.scrollHeight + 2) + 'px'; }
+
+function renderQuestion() {
+  const n = ST.now, nb = $('#nb-q'), rd = $('#rd-q');
+  if (!(ST.phase === 'live' && n && n.question)) { nb.hidden = true; rd.hidden = true; if (qc.el.parentNode) qc.el.remove(); return; }
+  const host = mqConsole.matches ? rd : nb, other = host === rd ? nb : rd;
+  if (qc.el.parentNode !== host) {
+    const f = qc.el.contains(document.activeElement) ? document.activeElement : null;
+    host.append(qc.el);
+    if (f) { try { f.focus({ preventScroll: true }); } catch (e) {} }
+  }
+  host.hidden = false; other.hidden = true;
+  if (n.questionId !== QA.qid) { QA.qid = n.questionId; QA.editing = false; QA.sending = ''; QA.msg = ''; QA.bad = false; QA.local = null; qc.text.value = ''; sizeQText(); }
+  qc.q.textContent = n.question;
+  const opts = n.questionOptions, osig = JSON.stringify(opts);
+  if (osig !== QA.optSig) {
+    QA.optSig = osig;
+    qc.opts.replaceChildren(...opts.map((o, i) => {
+      const b = h('button', { type: 'button', class: 'qc-opt', 'aria-pressed': 'false' }, h('span', { class: 'qc-k', 'aria-hidden': 'true', text: LETTERS[i] }), h('span', { text: o }));
+      b.dataset.choice = o;
+      b.addEventListener('click', () => sendAnswer('choice', o));
+      return b;
+    }));
+  }
+  qc.opts.hidden = !opts.length;
+  qc.lab.textContent = opts.length ? 'Or in your own words' : 'Answer in your own words';
+  const ans = answerFor(QA.qid), ro = ST.canWrite === false, busy = !!QA.sending;
+  const showDone = !!ans && !QA.editing;
+  qc.done.hidden = !showDone; qc.ask.hidden = showDone; qc.keep.hidden = !(ans && QA.editing);
+  if (ans) {
+    const i = opts.indexOf(ans.choice);
+    qc.pick.replaceChildren(...(i >= 0 ? [h('span', { class: 'qc-k', 'aria-hidden': 'true', text: LETTERS[i] })] : []), h('span', { text: ans.choice }));
+    qc.pick.hidden = !ans.choice;
+    qc.said.textContent = ans.text; qc.said.hidden = !ans.text;
+    qc.note.textContent = ans.read ? 'The council has read it.' : 'Queued. The next council reads it.';
+  }
+  const lock = el => { if (busy) el.setAttribute('aria-disabled', 'true'); else el.removeAttribute('aria-disabled'); };
+  for (const b of qc.opts.children) {
+    b.setAttribute('aria-pressed', ans && ans.choice === b.dataset.choice ? 'true' : 'false');
+    b.disabled = ro; lock(b);
+    b.classList.toggle('sending', QA.sending === 'choice:' + b.dataset.choice);
+  }
+  qc.text.disabled = ro; qc.text.readOnly = busy;
+  qc.send.disabled = ro; lock(qc.send); qc.send.textContent = QA.sending === 'text' ? 'Sending' : 'Send';
+  qc.change.disabled = ro; qc.keep.disabled = busy;
+  const m = ro ? (QA.msg || 'Read-only view. You can read the question, not answer it.') : QA.msg;
+  if (qc.msg.textContent !== m) qc.msg.textContent = m;
+  qc.msg.classList.toggle('bad', QA.bad);
+}
+
+async function sendAnswer(kind, raw) {
+  const n = ST.now;
+  if (!n || !n.question || n.questionId !== QA.qid || QA.sending) return;
+  if (ST.canWrite === false) { renderQuestion(); return; }
+  if (!ST.db) { QA.msg = 'No line to the archive. Open this page from claude.ai.'; QA.bad = true; renderQuestion(); return; }
+  const val = kind === 'text' ? String(raw || '').trim().slice(0, 500) : String(raw || '');
+  if (!val) { qc.text.focus(); return; }
+  const cur = answerFor(QA.qid);
+  if (cur && (kind === 'choice' ? cur.choice === val : cur.text === val)) {   // nothing new to say: close the editor, write nothing
+    QA.editing = false; QA.msg = ''; QA.bad = false; if (kind === 'text') { qc.text.value = ''; sizeQText(); }
+    renderQuestion(); try { qc.change.focus({ preventScroll: true }); } catch (e) {}
+    return;
+  }
+  // the exact answer shape the council reads: one of choice or text per answer
+  const sig = { type: 'answer', questionId: QA.qid, question: n.question.slice(0, 200) };
+  if (kind === 'choice') sig.choice = val; else sig.text = val;
+  sig.at = new Date().toISOString(); sig.handled = false;
+  const hadFocus = qc.el.contains(document.activeElement);
+  QA.sending = kind === 'choice' ? 'choice:' + val : 'text'; QA.msg = 'Sending to the council…'; QA.bad = false;
+  renderQuestion();
+  try {
+    ST.lastWriteAt = Date.now();
+    await ST.db.collection('signals').add(sig);
+    ST.lastWriteAt = Date.now();
+    QA.local = { id: '', type: 'answer', pathId: '', questionId: sig.questionId, choice: sig.choice || '', text: sig.text || '', at: sig.at, handled: false };
+    QA.sending = ''; QA.editing = false; QA.msg = ''; QA.bad = false;
+    if (kind === 'text') { qc.text.value = ''; sizeQText(); }
+    renderQuestion();
+    announce('Answer sent: ' + trunc(val, 90) + '. The next council reads it.');
+    if (hadFocus) { try { qc.change.focus({ preventScroll: true }); } catch (e) {} }
+  } catch (e) {
+    QA.sending = ''; QA.bad = true;
+    // a well-formed write refused with invalid_argument means this viewer cannot write: read-only for the rest of the visit
+    if (e && e.code === 'invalid_argument') { ST.canWrite = false; QA.msg = 'Read-only view. Your answer was not saved.'; }
+    else QA.msg = 'Your answer did not go out. Check the line and try again.';
+    renderQuestion(); changed();
+    if (hadFocus && ST.canWrite === false) { try { qc.q.focus({ preventScroll: true }); } catch (x) {} }
+  }
+}
+qc.send.addEventListener('click', () => sendAnswer('text', qc.text.value));
+qc.text.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendAnswer('text', qc.text.value); } });
+qc.text.addEventListener('input', sizeQText);
+qc.change.addEventListener('click', () => {
+  const a = answerFor(QA.qid); if (!a || ST.canWrite === false) return;
+  QA.editing = true; QA.msg = ''; QA.bad = false; qc.text.value = a.text || '';
+  renderQuestion(); sizeQText();
+  const f = qc.opts.querySelector('[aria-pressed="true"]') || qc.opts.querySelector('button') || qc.text;
+  try { f.focus({ preventScroll: true }); } catch (e) {}
+});
+qc.keep.addEventListener('click', () => {
+  QA.editing = false; QA.msg = ''; QA.bad = false; qc.text.value = ''; sizeQText();
+  renderQuestion(); try { qc.change.focus({ preventScroll: true }); } catch (e) {}
+});
+qc.el.addEventListener('keydown', e => { if (e.key === 'Escape' && QA.editing && !QA.sending && !qc.keep.hidden) { e.preventDefault(); e.stopPropagation(); qc.keep.click(); } });
+mqConsole.addEventListener('change', () => renderQuestion());
+
 /* ================= lens ================= */
 const lensDlg = $('#lens');
 function renderLens() {
@@ -1484,7 +1623,7 @@ function render() {
   ST.phase = computePhase();
   app.dataset.phase = ST.phase;
   derive();
-  renderHeader(); renderHub(); renderReadout(); syncNodes(); renderList(); renderDrawer(); renderAsk();
+  renderHeader(); renderHub(); renderReadout(); renderQuestion(); syncNodes(); renderList(); renderDrawer(); renderAsk();
   if (ST.phase === 'live' || ST.phase === 'empty') ST.firstRender = false;
 }
 
