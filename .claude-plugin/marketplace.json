@@ -1,0 +1,14 @@
+{
+  "name": "tabula-rosetta",
+  "owner": {
+    "name": "domnoval"
+  },
+  "plugins": [
+    {
+      "name": "oracle",
+      "source": "./mods/oracle",
+      "description": "Deals three next moves after every turn: one sharp, one sideways, one past the edge."
+    }
+  ],
+  "description": "Mods built in the Tabula Rosetta workspace."
+}

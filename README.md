@@ -8,6 +8,8 @@ A clean-slate Claude workspace. No gates, a curated toolbox, and a pause line on
 | `.claude/settings.json` | Allow and ask rules: open servers allowed whole, gated servers allowed whole with the risky calls forced back to ask |
 | `environment/setup.sh` | Paste into the cloud environment's Setup script field |
 | `connectors.md` | Connector policy table |
+| `mods/oracle/` | Mod that deals three next moves after every turn: sharp, sideways, past the edge. See its README |
+| `.claude-plugin/marketplace.json` | Makes this repo a marketplace: `/plugin install oracle --marketplace domnoval/tabula-rosetta` |
 
 Generated from the Tabula Rosetta blueprint with its default dials: Auto mode, Full network, seven connectors, no gstack.
 
