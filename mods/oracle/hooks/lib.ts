@@ -1,54 +1,18 @@
 import type { SessionMessage } from 'claude-code'
 
-import type { Card, Deck, Lane } from '../types'
+import type { Field, Mode, Path, Status } from '../types'
 
-export const ORDER: readonly Lane[] = ['next', 'sideways', 'edge']
-
-export const LANES: Record<Lane, { glyph: string; label: string; brief: string }> = {
-  next: {
-    glyph: '▲',
-    label: 'NEXT',
-    brief:
-      'The move a sharp collaborator makes right now, given exactly what just happened. Name the file, the function, the artifact. Momentum, not maintenance.',
-  },
-  sideways: {
-    glyph: '◇',
-    label: 'SIDEWAYS',
-    brief:
-      'A lateral move: invert an assumption, or cross-wire two things that already exist here (a connected tool, a skill, a file, a metaphor) into something neither does alone.',
-  },
-  edge: {
-    glyph: '☾',
-    label: 'EDGE',
-    brief:
-      'What has not been seen yet. Darker, stranger, higher ceiling. Break the thing to learn what it is made of; let the collapse be the form. If it is speculation, the `why` says so.',
-  },
+export const MODES: Record<Mode, { label: string; glyph: string }> = {
+  collision: { label: 'COLLISION', glyph: '×' },
+  inversion: { label: 'INVERSION', glyph: '▽' },
+  escalation: { label: 'ESCALATION', glyph: '△' },
+  wrongtool: { label: 'WRONG TOOL', glyph: '⌐' },
 }
 
-const LEAN = {
-  grounded: 'Keep SIDEWAYS and EDGE within a day of the current work: a stretch, not a leap.',
-  sharp: 'SIDEWAYS should surprise. EDGE should feel slightly dangerous and still run in one prompt.',
-  feral:
-    'SIDEWAYS and EDGE should unsettle. The EDGE move is the one you would hesitate to suggest. Still doable in one prompt, still grounded in a real thing from this session.',
-} as const
+export const RINGS = { 1: 'THIS WEEK', 2: 'STRETCH', 3: 'OTHER PLANET' } as const
 
-export type Wildness = keyof typeof LEAN
-
-export type AskInput = {
-  // The fast engine's model has not seen the session; the fork's has.
-  isBlind: boolean
-  wildness: Wildness
-  voice: string
-  persona: string
-  digest: string
-  repo: string
-  tools: string
-  seen: readonly string[]
-  picked: readonly string[]
-  skipped: readonly string[]
-}
-
-const SPENDS = /\b(deploy\w*|publish\w*|promote|rollback|migrat\w+|credits?|higgsfield|shopify|supabase|vercel|merge[ds]?|force[- ]push|reset --hard|purchase|buy|domain|dns|tiktok|upscale|generate (?:an? )?(?:image|video|audio|3d)\w*)\b/i
+const MODE_KEYS = Object.keys(MODES) as Mode[]
+const STATUSES: readonly Status[] = ['open', 'picked', 'slop', 'parked', 'done']
 
 export function clip(text: string, max: number): string {
   const flat = text.replace(/\s+/g, ' ').trim()
@@ -57,6 +21,11 @@ export function clip(text: string, max: number): string {
 }
 
 export const fit = clip
+
+const str = (v: unknown, max: number) => (typeof v === 'string' ? clip(v, max) : '')
+
+const num = (v: unknown, lo: number, hi: number, fallback: number) =>
+  typeof v === 'number' && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : fallback
 
 function argOf(input: Record<string, unknown>): string {
   for (const key of ['file_path', 'command', 'path', 'pattern', 'url', 'query', 'description', 'prompt', 'name']) {
@@ -71,21 +40,21 @@ function argOf(input: Record<string, unknown>): string {
 }
 
 // The last stretch of the conversation, newest kept when the budget bites.
-export function digest(messages: readonly SessionMessage[], budget = 5200): string {
+export function digest(messages: readonly SessionMessage[], budget = 3600): string {
   const rows: string[] = []
 
-  for (const m of messages.slice(-10)) {
+  for (const m of messages.slice(-8)) {
     const tools = m.toolUses
       .map(t => `${t.isError === true ? '✗' : '·'}${t.tool}(${argOf(t.input)})`)
       .join(' ')
-    const text = clip(m.text, m.role === 'assistant' ? 700 : 420)
+    const text = clip(m.text, m.role === 'assistant' ? 600 : 360)
 
     if (text === '' && tools === '') {
       continue
     }
 
     rows.push(
-      `${m.role === 'user' ? 'PERSON' : 'CLAUDE'}: ${text}${tools === '' ? '' : `\n  tools: ${clip(tools, 420)}`}`,
+      `${m.role === 'user' ? 'PERSON' : 'CLAUDE'}: ${text}${tools === '' ? '' : `\n  tools: ${clip(tools, 360)}`}`,
     )
   }
 
@@ -105,132 +74,167 @@ export function digest(messages: readonly SessionMessage[], budget = 5200): stri
   return kept.join('\n')
 }
 
-// mcp__Server__tool names, folded into one line per server.
-export function summarizeTools(tools: readonly { name: string; mcp: boolean }[]): string {
-  const servers = new Map<string, string[]>()
-  let builtin = 0
-
-  for (const t of tools) {
-    const parts = t.name.split('__')
-
-    if (!t.mcp || parts.length < 3 || parts[0] !== 'mcp') {
-      builtin += 1
-      continue
-    }
-
-    const server = parts[1] ?? '?'
-    const list = servers.get(server) ?? []
-
-    list.push(parts.slice(2).join('__'))
-    servers.set(server, list)
+export function parsePath(raw: unknown): Path | null {
+  if (typeof raw !== 'object' || raw === null) {
+    return null
   }
 
-  const lines = [...servers.entries()]
-    .sort((a, b) => b[1].length - a[1].length)
-    .slice(0, 26)
-    .map(([server, names]) => `${server} (${names.length}): ${names.slice(0, 4).join(', ')}`)
+  const r = raw as Record<string, unknown>
+  const id = typeof r.id === 'string' ? r.id : ''
+  const title = str(r.title, 48)
+  const firstMove = typeof r.firstMove === 'string' ? r.firstMove.trim().slice(0, 700) : ''
+  const mode = MODE_KEYS.find(m => m === r.mode)
 
-  return `${builtin} built-in tools.\n${lines.join('\n')}`.slice(0, 1900)
-}
-
-export function flagSpend(card: Card): Card {
-  if (card.spends !== '' || !SPENDS.test(`${card.title} ${card.prompt}`)) {
-    return card
+  if (id === '' || title === '' || firstMove === '' || mode === undefined) {
+    return null
   }
 
-  return { ...card, spends: 'asks first' }
+  const ring = num(r.ring, 1, 3, 2)
+  const strings = (v: unknown) => (Array.isArray(v) ? v.filter((s): s is string => typeof s === 'string') : [])
+
+  return {
+    id,
+    title,
+    why: str(r.why, 140),
+    firstMove,
+    mode,
+    ring: (ring === 1 || ring === 3 ? ring : 2) as 1 | 2 | 3,
+    reachDays: num(r.reachDays, 0, 3650, 7),
+    surprise: num(r.surprise, 1, 5, 3),
+    money: num(r.money, 0, 3, 0),
+    fuel: strings(r.fuel),
+    tools: strings(r.tools),
+    sources: Array.isArray(r.sources)
+      ? r.sources.flatMap(s =>
+          typeof s === 'object' && s !== null && typeof (s as { url?: unknown }).url === 'string'
+            ? [{ label: str((s as { label?: unknown }).label, 80), url: (s as { url: string }).url }]
+            : [],
+        )
+      : [],
+    spends: str(r.spends, 60),
+    isWildcard: r.isWildcard === true,
+    status: STATUSES.find(s => s === r.status) ?? 'open',
+    round: num(r.round, 0, 100000, 1),
+    createdAt: str(r.createdAt, 40),
+  }
 }
 
-function stripFence(text: string): string {
-  const open = text.indexOf('[')
-  const close = text.lastIndexOf(']')
-
-  return open === -1 || close <= open ? '' : text.slice(open, close + 1)
-}
-
-const str = (v: unknown, max: number) => (typeof v === 'string' ? clip(v, max) : '')
-
-// One card per lane, in lane order. Fewer than two usable cards is a mumble.
-export function parseCards(reply: string): Card[] {
+export function parseField(text: string): Field | null {
   let raw: unknown
 
   try {
-    raw = JSON.parse(stripFence(reply))
+    raw = JSON.parse(text)
   } catch {
-    return []
+    return null
   }
 
-  if (!Array.isArray(raw)) {
-    return []
+  if (typeof raw !== 'object' || raw === null) {
+    return null
   }
 
-  const byLane = new Map<Lane, Card>()
+  const { now, paths } = raw as { now?: Record<string, unknown>; paths?: unknown }
 
-  for (const item of raw) {
-    if (typeof item !== 'object' || item === null) {
-      continue
-    }
-
-    const row = item as Record<string, unknown>
-    const lane = String(row.lane ?? row.kind ?? '').toLowerCase() as Lane
-    const prompt = typeof row.prompt === 'string' ? row.prompt.trim().slice(0, 900) : ''
-    const title = str(row.title, 44)
-
-    if (!ORDER.includes(lane) || byLane.has(lane) || prompt === '' || title === '') {
-      continue
-    }
-
-    byLane.set(lane, flagSpend({ lane, title, why: str(row.why, 120), prompt, spends: str(row.spends, 60) }))
+  if (typeof now !== 'object' || now === null || !Array.isArray(paths)) {
+    return null
   }
 
-  const cards = ORDER.flatMap(lane => byLane.get(lane) ?? [])
-
-  return cards.length >= 2 ? cards : []
+  return {
+    now: {
+      headline: str(now.headline, 140),
+      situation: str(now.situation, 500),
+      round: num(now.round, 0, 100000, 1),
+      convenedAt: str(now.convenedAt, 40),
+      council: Array.isArray(now.council) ? now.council.filter((s): s is string => typeof s === 'string') : [],
+      trigger: str(now.trigger, 20),
+    },
+    paths: paths.flatMap(p => parsePath(p) ?? []),
+  }
 }
 
-export function buildAsk(a: AskInput): string {
-  const lanes = ORDER.map(lane => `${LANES[lane].label} — ${LANES[lane].brief}`).join('\n')
-  const part = (title: string, body: string) => (body.trim() === '' ? '' : `\n## ${title}\n${body.trim()}\n`)
+// Live paths in display order: strangest first, the wildcard last. A pick stays listed so the
+// numbers `/next N` and the band share do not shift under the artist.
+export function ordered(field: Field): Path[] {
+  const open = field.paths.filter(p => p.status === 'open' || p.status === 'picked')
+  const rank = (a: Path, b: Path) => b.surprise - a.surprise || a.ring - b.ring || b.money - a.money
 
-  return [
-    a.isBlind
-      ? 'You are the Oracle: the part of a working session that sees one move ahead. Read the room below and deal the person three next moves.'
-      : 'Step outside the turn above. You are now the Oracle: the part of this session that sees one move ahead. Deal the person three next moves, drawn from everything in this conversation.',
-    part('Who they are (their standing instructions)', a.persona),
-    part('The room (recent conversation)', a.isBlind ? a.digest : ''),
-    part('The repo', a.repo),
-    part('Tools and servers connected right now', a.tools),
-    '\n## The three lanes, one card each\n' + lanes,
-    `\n${LEAN[a.wildness]}`,
-    `
-## Rules
-- Every card's \`prompt\` is a complete instruction the person could send as written: first person, at most 60 words, concrete nouns, verbs that end in an artifact (a file, a render, a page, a commit). It must be runnable now with the tools above.
-- Ground each card in something that actually appeared in the room or the repo. If you cannot name the thing, do not suggest it.
-- Banned unless the room screams for it: tests, docs, refactor, cleanup, explore, consider, review, improve, polish.
-- Three lanes means three directions, never three flavors of one idea.
-- If a move would spend credits, deploy, publish, merge, or write to a store or database, put what it costs in \`spends\` (at most 8 words). Otherwise \`spends\` is "".
-- Voice: ${a.voice}. \`title\` at most 5 words. \`why\` at most 14 words and states the payoff, not the process.`,
-    part('Never repeat or rephrase these', a.seen.slice(-40).join('\n')),
-    part('Lean toward what they actually pick', a.picked.join('\n')),
-    part('Lean away from what they ignore', a.skipped.join('\n')),
-    '\nReply with ONLY a JSON array of three objects, in lane order, no prose, no fences:\n[{"lane":"next","title":"","why":"","prompt":"","spends":""},{"lane":"sideways",...},{"lane":"edge",...}]',
-  ]
-    .filter(s => s !== '')
-    .join('\n')
+  return [...open.filter(p => !p.isWildcard).sort(rank), ...open.filter(p => p.isWildcard)]
 }
 
-// The hand as plain text: for surfaces that cannot draw the band, and for /next.
-export function renderHand(d: Deck): string {
-  const rows = d.cards.map((card, i) => {
-    const lane = LANES[card.lane]
-    const tag = card.spends === '' ? '' : `  ⚑ ${card.spends}`
+export const dollars = (money: number) => (money <= 0 ? '·' : '$'.repeat(Math.min(3, Math.round(money))))
 
-    return `${i + 1}  ${lane.glyph} ${lane.label}  ${card.title}${tag}\n     ${card.why}\n     → ${card.prompt}`
+export function renderField(field: Field): string {
+  const rows = ordered(field).map((p, i) => {
+    const flag = p.spends === '' ? '' : `  ⚑ ${p.spends}`
+    const star = p.isWildcard ? '  ✶ WILDCARD' : ''
+    const done = p.status === 'picked' ? '  ✓ picked' : ''
+
+    return [
+      `${i + 1}  ${RINGS[p.ring]} · ${MODES[p.mode].glyph} ${MODES[p.mode].label} · ${dollars(p.money)}${flag}${star}${done}`,
+      `   ${p.title}`,
+      `   ${p.why}`,
+      `   → ${p.firstMove}`,
+    ].join('\n')
   })
 
   return [
-    `◈ ORACLE · ${d.turn > 0 ? `after turn ${d.turn}` : 'cold open'}`,
-    ...rows,
-    '/next 1 loads a card · /next 1 go sends it · /next new deals again',
+    `◈ ORACLE · round ${field.now.round}${field.now.headline === '' ? '' : ` · ${field.now.headline}`}`,
+    ...(rows.length === 0 ? ['No open paths. /next convene calls a council.'] : rows),
+    '/next N loads a first move · /next N go sends it · /next convene calls a new council',
   ].join('\n')
+}
+
+// Records a pick in the field file's text, keeping everything else as written.
+export function markPicked(text: string, id: string): string | null {
+  let raw: { paths?: { id?: unknown; status?: unknown }[] }
+
+  try {
+    raw = JSON.parse(text)
+  } catch {
+    return null
+  }
+
+  const hit = raw.paths?.find(p => p.id === id)
+
+  if (hit === undefined) {
+    return null
+  }
+
+  hit.status = 'picked'
+
+  return `${JSON.stringify(raw, null, 2)}\n`
+}
+
+export function buildSense(recent: string): string {
+  return `You watch a working session between an artist and Claude and decide whether this moment is a FORK in the road: a point where an outside view of what to do next would be worth more than carrying on.
+
+A fork is one of:
+- a piece or feature just finished and the next move is open,
+- a new direction or a fresh project is starting,
+- a stall: the same problem across several turns, or a loop,
+- a decision between options is about to be made without an outside view,
+- a long drift away from the work itself or from making money.
+
+Routine progress in the middle of a task is NOT a fork. Fixing a small bug, answering a question, or reporting that tests pass is NOT a fork.
+
+Session so far:
+${recent}
+
+Reply with ONLY JSON: {"fork": true or false, "reason": "at most 14 plain words naming what kind of fork"}`
+}
+
+export function parseSense(reply: string): { isFork: boolean; reason: string } | null {
+  const open = reply.indexOf('{')
+  const close = reply.lastIndexOf('}')
+
+  if (open === -1 || close <= open) {
+    return null
+  }
+
+  try {
+    const raw = JSON.parse(reply.slice(open, close + 1)) as { fork?: unknown; reason?: unknown }
+
+    return typeof raw.fork === 'boolean' ? { isFork: raw.fork, reason: str(raw.reason, 100) } : null
+  } catch {
+    return null
+  }
 }

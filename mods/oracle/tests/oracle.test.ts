@@ -1,101 +1,120 @@
 import { describe, expect, mock, test } from 'claude-code/testing'
 
-import { buildAsk, clip, digest, flagSpend, parseCards, renderHand, summarizeTools } from '../hooks/lib'
+import { buildSense, clip, digest, markPicked, ordered, parseField, parseSense, renderField } from '../hooks/lib'
 
-const HAND = JSON.stringify([
-  { lane: 'next', title: 'Wire sigil to audio', why: 'The lattice breathes with the beat.', prompt: 'Wire the sigil in lattice.ts to the audio analyser.', spends: '' },
-  { lane: 'sideways', title: 'Render it as a bell', why: 'Geometry as resonance, not picture.', prompt: 'Render the lattice as a struck bell: strike points, decay rings.', spends: '' },
-  { lane: 'edge', title: 'Let it eat itself', why: 'Speculation: collapse reveals the seed.', prompt: 'Add a mode where each frame is drawn from the previous frame\'s damage.', spends: '' },
-])
+const path = (id: string, over: Record<string, unknown> = {}) => ({
+  id,
+  title: `Title ${id}`,
+  why: `Why ${id}`,
+  firstMove: `Do the ${id} thing now.`,
+  mode: 'collision',
+  ring: 1,
+  reachDays: 3,
+  surprise: 3,
+  money: 2,
+  fuel: ['worlds'],
+  tools: ['Shopify'],
+  sources: [{ label: 'src', url: 'https://example.com' }],
+  spends: '',
+  isWildcard: false,
+  status: 'open',
+  round: 1,
+  createdAt: '2026-10-08T00:00:00Z',
+  ...over,
+})
+
+const FIELD = JSON.stringify({
+  now: {
+    headline: 'Money is blocked behind a draft product',
+    situation: 'Floating, pivoting back to art that earns.',
+    round: 1,
+    convenedAt: '2026-10-08T00:00:00Z',
+    council: ['collider', 'ledger'],
+    trigger: 'asked',
+  },
+  paths: [
+    path('a', { surprise: 2 }),
+    path('b', { surprise: 5, mode: 'wrongtool' }),
+    path('w', { isWildcard: true, ring: 3, surprise: 5, spends: '40 credits' }),
+    path('s', { status: 'slop', surprise: 5 }),
+  ],
+})
 
 describe('lib', () => {
-  test('parseCards takes a fenced, chatty reply and orders the lanes', () => {
-    const shuffled = JSON.stringify([...JSON.parse(HAND)].reverse())
-    const cards = parseCards(`Here you go:\n\`\`\`json\n${shuffled}\n\`\`\`\nenjoy`)
+  test('parseField keeps good paths, repairs numbers, drops the malformed', () => {
+    const raw = JSON.stringify({
+      now: { headline: 'h', round: 2 },
+      paths: [
+        path('ok', { ring: 9, money: 99, surprise: -4, status: 'weird' }),
+        { id: 'no-move', title: 't', mode: 'collision' },
+        { id: 'bad-mode', title: 't', firstMove: 'x', mode: 'nonsense' },
+        'junk',
+      ],
+    })
+    const field = parseField(raw)
 
-    expect(cards.map(c => c.lane)).toEqual(['next', 'sideways', 'edge'])
+    expect(field?.paths.map(p => p.id)).toEqual(['ok'])
+    expect(field?.paths[0]).toMatchObject({ ring: 3, money: 3, surprise: 1, status: 'open' })
+    expect(parseField('not json')).toBeNull()
+    expect(parseField('{"paths":[]}')).toBeNull()
   })
 
-  test('parseCards keeps one card per lane and drops empties', () => {
-    const raw = JSON.stringify([
-      { lane: 'next', title: 'A', why: '', prompt: 'do a' },
-      { lane: 'next', title: 'B', why: '', prompt: 'do b' },
-      { lane: 'edge', title: '', why: '', prompt: 'no title' },
-      { lane: 'sideways', title: 'C', why: '', prompt: 'do c' },
-    ])
+  test('ordered puts the strangest first, the wildcard last, hides slop, keeps picks', () => {
+    const field = parseField(FIELD)
 
-    expect(parseCards(raw).map(c => c.title)).toEqual(['A', 'C'])
+    expect(field).not.toBeNull()
+    expect(ordered(field!).map(p => p.id)).toEqual(['b', 'a', 'w'])
+
+    const picked = { ...field!, paths: field!.paths.map(p => (p.id === 'b' ? { ...p, status: 'picked' as const } : p)) }
+
+    expect(ordered(picked).map(p => p.id)).toEqual(['b', 'a', 'w'])
   })
 
-  test('parseCards calls a lone card or noise a mumble', () => {
-    expect(parseCards('no json here')).toEqual([])
-    expect(parseCards('[{"lane":"next","title":"A","prompt":"x"}]')).toEqual([])
-    expect(parseCards('{"lane":"next"}')).toEqual([])
+  test('renderField shows the headline, wildcard, spend flag and first move', () => {
+    const out = renderField(parseField(FIELD)!)
+
+    expect(out).toContain('round 1 · Money is blocked behind a draft product')
+    expect(out).toContain('✶ WILDCARD')
+    expect(out).toContain('⚑ 40 credits')
+    expect(out).toContain('→ Do the b thing now.')
+    expect(out).toContain('/next convene')
   })
 
-  test('money, deploys and publishing get a flag even when the model forgot', () => {
-    const card = { lane: 'edge' as const, title: 'Ship it', why: '', prompt: 'Deploy the site to Vercel', spends: '' }
+  test('markPicked flips one status and leaves the rest', () => {
+    const next = markPicked(FIELD, 'a')
 
-    expect(flagSpend(card).spends).toBe('asks first')
-    expect(flagSpend({ ...card, prompt: 'Rotate the sigil by phi', title: 'Spin' }).spends).toBe('')
-    expect(flagSpend({ ...card, spends: '40 credits' }).spends).toBe('40 credits')
+    expect(next).not.toBeNull()
+
+    const field = parseField(next!)
+
+    expect(field?.paths.find(p => p.id === 'a')?.status).toBe('picked')
+    expect(field?.paths.find(p => p.id === 'b')?.status).toBe('open')
+    expect(markPicked(FIELD, 'missing')).toBeNull()
+    expect(markPicked('nope', 'a')).toBeNull()
   })
 
-  test('digest keeps the newest rows when the budget bites and names failed tools', () => {
-    const rows = Array.from({ length: 10 }, (_, i) => ({
+  test('parseSense reads a verdict through chatter and refuses noise', () => {
+    expect(parseSense('Sure: {"fork": true, "reason": "a piece just finished"}')).toEqual({
+      isFork: true,
+      reason: 'a piece just finished',
+    })
+    expect(parseSense('{"fork": false, "reason": ""}')?.isFork).toBe(false)
+    expect(parseSense('{"fork": "yes"}')).toBeNull()
+    expect(parseSense('no json')).toBeNull()
+    expect(buildSense('PERSON: hi')).toContain('PERSON: hi')
+  })
+
+  test('digest keeps the newest rows when the budget bites', () => {
+    const rows = Array.from({ length: 8 }, (_, i) => ({
       role: i % 2 === 0 ? ('user' as const) : ('assistant' as const),
       text: `message ${i} ${'x'.repeat(300)}`,
       toolUses: [],
     }))
-    const out = digest(rows, 900)
+    const out = digest(rows, 700)
 
-    expect(out).toContain('message 9')
+    expect(out).toContain('message 7')
     expect(out).not.toContain('message 0')
     expect(clip('a  b\n c', 20)).toBe('a b c')
-  })
-
-  test('renderHand prints every card with its prompt and flags', () => {
-    const cards = parseCards(HAND)
-    const out = renderHand({ phase: 'ready', cards, turn: 3, note: '', isPicked: false })
-
-    expect(out).toContain('after turn 3')
-    expect(out).toContain('1  ▲ NEXT  Wire sigil to audio')
-    expect(out).toContain('→ Render the lattice as a struck bell')
-    expect(out).toContain('/next new deals again')
-  })
-
-  test('summarizeTools folds MCP tools by server', () => {
-    const out = summarizeTools([
-      { name: 'Bash', mcp: false },
-      { name: 'mcp__Higgsfield__generate_image', mcp: true },
-      { name: 'mcp__Higgsfield__generate_video', mcp: true },
-      { name: 'mcp__Three_js_3D_Viewer__show_threejs_scene', mcp: true },
-    ])
-
-    expect(out).toContain('1 built-in tools')
-    expect(out).toContain('Higgsfield (2): generate_image, generate_video')
-    expect(out).toContain('Three_js_3D_Viewer (1)')
-  })
-
-  test('the ask carries the rubric, the lanes and what to avoid', () => {
-    const ask = buildAsk({
-      isBlind: true,
-      wildness: 'feral',
-      voice: 'dry',
-      persona: 'I am an artist.',
-      digest: 'PERSON: hi',
-      repo: 'branch: main',
-      tools: '3 built-in tools.',
-      seen: ['next: Wire sigil to audio'],
-      picked: ['edge: Let it eat itself'],
-      skipped: [],
-    })
-
-    for (const needle of ['NEXT —', 'SIDEWAYS —', 'EDGE —', 'unsettle', 'Wire sigil to audio', 'PERSON: hi', 'ONLY a JSON array']) {
-      expect(ask).toContain(needle)
-    }
-
-    expect(ask).not.toContain('Lean away')
   })
 })
 
@@ -108,181 +127,165 @@ const PROPS = {
   view: {},
 } as never
 
+const TURN = {
+  answer: 'Finished the checkout flow and wired the webhook.',
+  durationMs: 1000,
+  isAborted: false,
+  reason: 'answer',
+} as const
+
+// The world beneath the plugin: a repo with a field file, a clock, a store.
+const world = (on: Parameters<typeof mock.clock>[0], writes: string[] = [], sent: string[] = []) => {
+  mock.store(on)
+  on('ui.status', () => ({ value: undefined }) as never)
+  on('turn.complete', () => ({ text: '' }))
+  on('prompt.submit', (_, e) => {
+    sent.push(e.text)
+
+    return { text: e.text }
+  })
+  on('command.register', () => ({ value: undefined }) as never)
+  on('session.start', () => ({ cwd: '/repo' }) as never)
+  on('session.root', () => ({ value: '/repo' }) as never)
+  on('session.messages', () => ({ value: [{ role: 'user', text: 'ship checkout', toolUses: [] }] }) as never)
+  on('fs.read', (_, e) => {
+    if (String(e.path).endsWith('oracle/page/URL')) {
+      return { value: 'https://claude.ai/artifact/abc\n' } as never
+    }
+
+    return { value: writes.at(-1) ?? FIELD } as never
+  })
+  on('fs.write', (_, e) => {
+    writes.push(e.text)
+
+    return { value: undefined } as never
+  })
+}
+
 describe('flow', () => {
-  test('a finished turn deals a hand into the band, and a prompt clears it', async ($, on) => {
-    const clock = mock.clock(on)
-
-    mock.store(on)
-    on('ui.status', () => ({ value: undefined }) as never)
-    on('turn.complete', () => ({ text: '' }))
-    on('prompt.submit', (_, e) => ({ text: e.text }))
-    on('ui.render', () => ({ type: 'Text', props: {}, children: ['engine'] }) as never)
-    on('model.fork', () => ({ value: { isAnswered: true, text: HAND, usage: { input_tokens: 1, output_tokens: 1 } } }) as never)
-    on('process.run', () => ({ value: { exitCode: 0, stdout: 'main', stderr: '' } }) as never)
-    on('fs.read', () => ({ value: '# CLAUDE\nbe sharp' }) as never)
-    on('session.root', () => ({ value: '/repo' }) as never)
-    on('tool.list', () => ({ value: [] }) as never)
-
-    await $.turn.complete({
-      answer: 'Built the lattice renderer and wired the controls.',
-      durationMs: 1000,
-      isAborted: false,
-      turnId: 't1',
-      reason: 'answer',
-    })
-    await clock.advance(200)
-
-    const ui = await $.ui.mount({ plugin: 'oracle', surface: 'terminal', component: 'AbovePrompt', props: PROPS })
-
-    expect(await ui.find({ key: 'pick-0' })).toBeDefined()
-    expect(await ui.find({ key: 'pick-2' })).toBeDefined()
-    expect(await ui.find({ type: 'Text', text: /after turn 1/ })).toBeDefined()
-    await ui.unmount()
-
-    await $.prompt.submit({ text: 'something of my own' } as never)
-
-    const after = await $.ui.mount({ plugin: 'oracle', surface: 'terminal', component: 'AbovePrompt', props: PROPS })
-
-    expect(await after.find({ key: 'pick-0' })).toBeUndefined()
-    await after.unmount()
-  })
-
-  test('a subagent turn deals nothing', async ($, on) => {
-    const clock = mock.clock(on)
-    let asked = 0
-
-    mock.store(on)
-    on('ui.status', () => ({ value: undefined }) as never)
-    on('turn.complete', () => ({ text: '' }))
-    on('model.fork', () => {
-      asked += 1
-
-      return { value: { isAnswered: false, reason: 'aborted', usage: {} } } as never
-    })
-
-    await $.turn.complete({
-      answer: 'A subagent finished its long errand successfully.',
-      durationMs: 1,
-      isAborted: false,
-      turnId: 't2',
-      agentId: 'sub-1',
-      reason: 'answer',
-    })
-    await clock.advance(200)
-
-    expect(asked).toBe(0)
-  })
-
-  test('a silent fork falls back to the fast model', async ($, on) => {
-    const clock = mock.clock(on)
-    const models: string[] = []
-
-    mock.store(on)
-    on('ui.status', () => ({ value: undefined }) as never)
-    on('turn.complete', () => ({ text: '' }))
-    on('model.fork', () => ({ value: { isAnswered: false, reason: 'api-error', status: 529, error: 'overloaded', usage: {} } }) as never)
-    on('model.complete', (_, e) => {
-      models.push(e.model)
-
-      return { value: { isAnswered: true, text: HAND, usage: { input_tokens: 1, output_tokens: 1 } } } as never
-    })
-    on('session.messages', () => ({ value: [{ role: 'user', text: 'make the lattice', toolUses: [] }] }) as never)
-    on('process.run', () => ({ value: { exitCode: 1, stdout: '', stderr: 'no git' } }) as never)
-    on('fs.read', () => {
-      throw new Error('no CLAUDE.md')
-    })
-    on('session.root', () => ({ value: '/repo' }) as never)
-    on('tool.list', () => ({ value: [] }) as never)
-
-    await $.turn.complete({
-      answer: 'Built the lattice renderer and wired the controls.',
-      durationMs: 1000,
-      isAborted: false,
-      turnId: 't3',
-      reason: 'answer',
-    })
-    await clock.advance(200)
-
-    expect(models).toEqual(['haiku'])
-  })
-
-  test('/next 2 loads the second card into the prompt', async ($, on) => {
-    const clock = mock.clock(on)
+  test('/next prints the council from the field file and loads a first move', async ($, on) => {
     const filled: string[] = []
+    const writes: string[] = []
 
-    mock.store(on)
-    on('ui.status', () => ({ value: undefined }) as never)
-    on('turn.complete', () => ({ text: '' }))
-    on('model.fork', () => ({ value: { isAnswered: true, text: HAND, usage: { input_tokens: 1, output_tokens: 1 } } }) as never)
-    on('process.run', () => ({ value: { exitCode: 0, stdout: '', stderr: '' } }) as never)
-    on('fs.read', () => ({ value: '' }) as never)
-    on('session.root', () => ({ value: '/repo' }) as never)
-    on('tool.list', () => ({ value: [] }) as never)
+    world(on, writes)
+    mock.clock(on)
     on('prompt.fill', (_, e) => {
       filled.push(e.text)
 
       return { isFilled: true } as never
     })
 
-    await $.turn.complete({
-      answer: 'Built the lattice renderer and wired the controls.',
-      durationMs: 1000,
-      isAborted: false,
-      turnId: 't4',
-      reason: 'answer',
-    })
-    await clock.advance(200)
-
-    const ran = await $.command.run({ command: 'next', args: '2' } as never)
-
-    expect(ran.text).toContain('Render it as a bell')
+    await $.session.start({ cwd: '/repo' } as never)
 
     const shown = await $.command.run({ command: 'next', args: '' } as never)
 
-    expect(shown.text).toContain('◈ ORACLE')
-    expect(shown.text).toContain('Let it eat itself')
-    expect(filled).toEqual(['Render the lattice as a struck bell: strike points, decay rings.'])
+    expect(shown.text).toContain('Money is blocked behind a draft product')
+
+    const loaded = await $.command.run({ command: 'next', args: '1' } as never)
+
+    expect(loaded.text).toContain('Title b')
+    expect(filled).toEqual(['Do the b thing now.'])
+    expect(parseField(writes.at(-1)!)?.paths.find(p => p.id === 'b')?.status).toBe('picked')
   })
 
-  test('/next 1 while the hand is still being conjured says so', async ($, on) => {
+  test('a fork gets nudged, shown in the band, and cleared by moving on', async ($, on) => {
     const clock = mock.clock(on)
-    let release = () => {}
-    const gate = new Promise<void>(resolve => {
-      release = resolve
+
+    world(on)
+    on('model.complete', () => ({ value: { isAnswered: true, text: '{"fork": true, "reason": "checkout just finished"}', usage: {} } }) as never)
+
+    await $.session.start({ cwd: '/repo' } as never)
+    await $.turn.complete({ ...TURN, turnId: 't1' } as never)
+    await clock.advance(200)
+
+    const ui = await $.ui.mount({ plugin: 'oracle', surface: 'terminal', component: 'AbovePrompt', props: PROPS })
+
+    expect(await ui.find({ key: 'convene' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: /checkout just finished/ })).toBeDefined()
+    await ui.unmount()
+
+    await $.prompt.submit({ text: 'something else entirely', origin: { kind: 'composer' } } as never)
+
+    const after = await $.ui.mount({ plugin: 'oracle', surface: 'terminal', component: 'AbovePrompt', props: PROPS })
+
+    expect(await after.find({ key: 'convene' })).toBeUndefined()
+    await after.unmount()
+  })
+
+  test('grind is not a fork, and a subagent turn is never judged', async ($, on) => {
+    const clock = mock.clock(on)
+    let asked = 0
+
+    world(on)
+    on('model.complete', () => {
+      asked += 1
+
+      return { value: { isAnswered: true, text: '{"fork": false, "reason": ""}', usage: {} } } as never
     })
 
-    mock.store(on)
-    on('ui.status', () => ({ value: undefined }) as never)
-    on('turn.complete', () => ({ text: '' }))
-    on('prompt.fill', () => ({ isFilled: true }) as never)
-    on('model.fork', async () => {
-      await gate
+    await $.session.start({ cwd: '/repo' } as never)
+    await $.turn.complete({ ...TURN, turnId: 't2' } as never)
+    await $.turn.complete({ ...TURN, turnId: 't3', agentId: 'sub-1' } as never)
+    await clock.advance(200)
 
-      return { value: { isAnswered: true, text: HAND, usage: { input_tokens: 1, output_tokens: 1 } } } as never
-    })
-    on('process.run', () => ({ value: { exitCode: 0, stdout: '', stderr: '' } }) as never)
-    on('fs.read', () => ({ value: '' }) as never)
-    on('session.root', () => ({ value: '/repo' }) as never)
-    on('tool.list', () => ({ value: [] }) as never)
+    expect(asked).toBe(1)
 
-    await $.turn.complete({
-      answer: 'Built the lattice renderer and wired the controls.',
-      durationMs: 1000,
-      isAborted: false,
-      turnId: 't5',
-      reason: 'answer',
-    })
+    const ui = await $.ui.mount({ plugin: 'oracle', surface: 'terminal', component: 'AbovePrompt', props: PROPS })
+
+    expect(await ui.find({ key: 'convene' })).toBeUndefined()
+    await ui.unmount()
+  })
+
+  test('/next convene hands the council its brief', async ($, on) => {
+    const sent: string[] = []
+
+    world(on, [], sent)
+
+    const clock = mock.clock(on)
+
+    await $.session.start({ cwd: '/repo' } as never)
+
+    const ran = await $.command.run({ command: 'next', args: 'convene' } as never)
+
+    expect(ran.text).toContain('Convening')
+    expect(sent).toEqual([])
     await clock.advance(100)
+    expect(sent[0]).toContain('.claude/skills/oracle/SKILL.md')
+  })
 
-    const early = await $.command.run({ command: 'next', args: '1' } as never)
+  test('/next 2 go sends the first move after the command returns', async ($, on) => {
+    const sent: string[] = []
 
-    expect(early.text).toContain('Still reading the room')
+    world(on, [], sent)
 
-    release()
+    const clock = mock.clock(on)
+
+    await $.session.start({ cwd: '/repo' } as never)
+    await $.command.run({ command: 'next', args: '2 go' } as never)
     await clock.advance(100)
+    expect(sent).toEqual(['Do the a thing now.'])
+  })
 
-    const late = await $.command.run({ command: 'next', args: '1' } as never)
+  test('/next page prints the live page link', async ($, on) => {
+    world(on)
+    mock.clock(on)
+    await $.session.start({ cwd: '/repo' } as never)
 
-    expect(late.text).toContain('Loaded into the prompt')
+    const ran = await $.command.run({ command: 'next', args: 'page' } as never)
+
+    expect(ran.text).toContain('https://claude.ai/artifact/abc')
+  })
+
+  test('the band lists the council paths with a hotkey each', async ($, on) => {
+    world(on)
+    mock.clock(on)
+    await $.session.start({ cwd: '/repo' } as never)
+
+    const ui = await $.ui.mount({ plugin: 'oracle', surface: 'terminal', component: 'AbovePrompt', props: PROPS })
+
+    expect(await ui.find({ key: 'pick-0' })).toBeDefined()
+    expect(await ui.find({ key: 'pick-2' })).toBeDefined()
+    expect(await ui.find({ key: 'pick-3' })).toBeUndefined()
+    await ui.unmount()
   })
 })

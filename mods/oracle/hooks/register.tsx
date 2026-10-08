@@ -1,235 +1,170 @@
 import { atom, read, update } from 'claude-code'
-import type { EngineInterface, ModelCompleteResult, Register } from 'claude-code'
+import type { EngineInterface, Register } from 'claude-code'
 
-import type { Card, Deck } from '../types'
-import { LANES, buildAsk, clip, digest, fit, parseCards, renderHand, summarizeTools } from './lib'
-import type { Wildness } from './lib'
+import type { Field, Nudge, Path } from '../types'
+import {
+  MODES,
+  RINGS,
+  buildSense,
+  digest,
+  dollars,
+  fit,
+  markPicked,
+  ordered,
+  parseField,
+  parseSense,
+  renderField,
+} from './lib'
 
-const EMPTY: Deck = { phase: 'idle', cards: [], turn: 0, note: '', isPicked: false }
-
-const deck = atom({ plugin: 'oracle', key: 'deck' } as const, EMPTY)
+const field = atom({ plugin: 'oracle', key: 'field' } as const, null)
+const nudge = atom({ plugin: 'oracle', key: 'nudge' } as const, null)
 const isHidden = atom({ plugin: 'oracle', key: 'isHidden' } as const, false)
+const turns = atom({ plugin: 'oracle', key: 'turns' } as const, 0)
+const quietUntil = atom({ plugin: 'oracle', key: 'quietUntil' } as const, 0)
 
-type Why = 'turn' | 'start' | 'reroll'
-
-// Notes the oracle keeps between sessions, in $.store.
-const list = async ($: EngineInterface, key: string): Promise<string[]> => {
-  const value = await $.store.get(key)
-
-  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []
-}
-
-const remember = async ($: EngineInterface, key: string, cards: readonly Card[], keep: number) => {
-  const next = [...(await list($, key)), ...cards.map(c => `${c.lane}: ${c.title}`)]
-
-  await $.store.set(key, next.slice(-keep))
-}
+const FIELD_FILE = 'oracle/field.json'
+const PAGE_FILE = 'oracle/page/URL'
 
 // Module scope: a reload starts these over, which is what a reload should do.
-type Config = { engine: 'fork' | 'fast'; wildness: Wildness; voice: string; fastModel: string }
+const cfg: { cadence: 'forks' | 'every' | 'ask'; fastModel: string } = { cadence: 'forks', fastModel: 'haiku' }
 
-const cfg: Config = { engine: 'fork', wildness: 'sharp', voice: 'direct, witty, dark', fastModel: 'haiku' }
-const run: { gen: number; stop: AbortController | undefined; persona: string | undefined } = {
-  gen: 0,
-  stop: undefined,
-  persona: undefined,
+const where = async ($: EngineInterface, file: string) => `${await $.session.root()}/${file}`
+
+// The council writes oracle/field.json; this reads it into session state.
+const loadField = async ($: EngineInterface) => {
+  try {
+    const parsed = parseField(await $.fs.read(await where($, FIELD_FILE)))
+
+    if (parsed !== null) {
+      await update($, field, () => parsed)
+    }
+  } catch {
+    // No council has run yet.
+  }
 }
 
-const ground = async ($: EngineInterface) => {
-  const git = async (...args: string[]) => {
-    try {
-      const ran = await $.process.run(['git', ...args], { timeoutMs: 4000 })
+const clearNudge = async ($: EngineInterface, isIgnored: boolean) => {
+  let had = false
 
-      return ran.exitCode === 0 ? ran.stdout.trim() : ''
-    } catch {
-      return ''
-    }
+  $.ui.status(undefined)
+  await update($, nudge, n => {
+    had = n !== null
+
+    return null
+  })
+
+  if (had && isIgnored) {
+    await update($, quietUntil, q => q + 3)
   }
-
-  if (run.persona === undefined) {
-    try {
-      run.persona = (await $.fs.read(`${await $.session.root()}/CLAUDE.md`)).slice(0, 2600)
-    } catch {
-      run.persona = ''
-    }
-  }
-
-  const [branch, status, log] = await Promise.all([
-    git('branch', '--show-current'),
-    git('status', '--short'),
-    git('log', '--oneline', '-n', '8'),
-  ])
-  const tools = await $.tool.list().then(summarizeTools, () => '')
-
-  const repo = [
-    branch === '' ? '' : `branch: ${branch}`,
-    status === '' ? 'working tree: clean' : `uncommitted:\n${status.split('\n').slice(0, 14).join('\n')}`,
-    log === '' ? '' : `recent commits:\n${log}`,
-  ]
-    .filter(s => s !== '')
-    .join('\n')
-
-  return { persona: run.persona ?? '', repo, tools }
 }
 
+// Is this turn a fork in the road? A small model decides; the cadence decides what to do about it.
+const sense = async ($: EngineInterface, turn: number) => {
+  let reason = 'a fresh outside view is available'
 
-const conjure = async ($: EngineInterface, why: Why, mine: number) => {
-  await update($, deck, (d): Deck => ({
-    ...d,
-    phase: 'thinking',
-    note: '',
-    isPicked: false,
-    turn: why === 'turn' ? d.turn + 1 : d.turn,
-  }))
+  if (cfg.cadence === 'forks') {
+    if (turn < (await read($, quietUntil))) {
+      return
+    }
 
-  const fail = (note: string) =>
-    mine === run.gen ? update($, deck, (d): Deck => ({ ...d, phase: 'idle', cards: [], note })) : undefined
+    const messages = await $.session.messages()
+    const reply = await $.model.complete({
+      model: cfg.fastModel,
+      prompt: buildSense(digest(messages)),
+      maxTokens: 160,
+      effort: 'low',
+      timeoutMs: 20000,
+    })
+    const verdict = reply.isAnswered ? parseSense(reply.text) : null
+
+    if (verdict === null || !verdict.isFork) {
+      return
+    }
+
+    reason = verdict.reason === '' ? reason : verdict.reason
+  }
+
+  const raised: Nudge = { reason, turn }
+
+  await update($, nudge, () => raised)
+  await update($, quietUntil, () => turn + 3)
+  $.ui.status(`◈ fork: ${fit(reason, 60)} · /next convene`)
+}
+
+// A command cannot submit a prompt from inside itself (it would wait on its own turn), so
+// every submission is queued for just after the calling event returns.
+const queue = ($: EngineInterface, text: string) => {
+  $.clock.after(50, () => {
+    void $.prompt.submit({ text, asUser: true }).catch(() => {})
+  })
+}
+
+const convene = async ($: EngineInterface, trigger: string) => {
+  await clearNudge($, false)
+  queue(
+    $,
+    `Convene the Oracle council now. Follow .claude/skills/oracle/SKILL.md (the oracle skill). Trigger: ${trigger}.`,
+  )
+}
+
+const take = async ($: EngineInterface, path: Path, isSent: boolean) => {
+  await update($, field, (f): Field | null =>
+    f === null ? f : { ...f, paths: f.paths.map((p): Path => (p.id === path.id ? { ...p, status: 'picked' } : p)) },
+  )
 
   try {
-    const [seen, picked, skipped, here] = await Promise.all([
-      list($, 'seen'),
-      list($, 'picked'),
-      list($, 'skipped'),
-      ground($),
-    ])
-    const base = { wildness: cfg.wildness, voice: cfg.voice, persona: here.persona, repo: here.repo, tools: here.tools, seen, picked, skipped }
+    const file = await where($, FIELD_FILE)
+    const next = markPicked(await $.fs.read(file), path.id)
 
-    let reply: ModelCompleteResult | undefined
-
-    // The fork reads the live transcript, so it needs no digest. Cold opens
-    // and failures fall back to a small model fed the digest.
-    if (cfg.engine === 'fork' && why !== 'start') {
-      const forked = await $.model.fork({ prompt: buildAsk({ ...base, isBlind: false, digest: '' }) })
-
-      if (forked.isAnswered) {
-        reply = forked
-      }
+    if (next !== null) {
+      await $.fs.write(file, next)
     }
-
-    if (reply === undefined) {
-      run.stop = new AbortController()
-
-      const messages = await $.session.messages()
-      const blind =
-        digest(messages) || 'No conversation yet. This is a cold open: read the repo and deal the session its first three moves.'
-
-      reply = await $.model.complete(
-        {
-          model: cfg.fastModel,
-          prompt: buildAsk({ ...base, isBlind: true, digest: blind }),
-          maxTokens: 1100,
-          effort: 'medium',
-          timeoutMs: 60000,
-        },
-        { signal: run.stop.signal },
-      )
-    }
-
-    if (mine !== run.gen) {
-      return
-    }
-
-    if (!reply.isAnswered) {
-      await fail(`the oracle went quiet (${reply.reason})`)
-
-      return
-    }
-
-    const cards = parseCards(reply.text)
-
-    if (cards.length === 0) {
-      await fail('the oracle mumbled. /next to deal again')
-
-      return
-    }
-
-    await update($, deck, (d): Deck => ({ ...d, phase: 'ready', cards, note: '' }))
-    $.ui.status(`◈ ${cards.length} moves ready · /next`)
-    await $.store.set('seen', [...seen, ...cards.map(c => `${c.lane}: ${c.title}`)].slice(-60))
-  } catch (error) {
-    await fail(`the oracle tripped: ${clip(String(error), 80)}`)
+  } catch {
+    // The page still has the pick; the mirror is best effort.
   }
-}
-
-
-// Start a hand without making the caller wait on the model.
-const deal = ($: EngineInterface, why: Why) => {
-  run.gen += 1
-  run.stop?.abort()
-
-  const mine = run.gen
-
-  $.clock.after(40, () => {
-    void conjure($, why, mine).catch(() => {})
-  })
-}
-
-
-// Clears the table; what was dealt and never touched counts as ignored.
-const retire = async ($: EngineInterface) => {
-  run.gen += 1
-  run.stop?.abort()
-  $.ui.status(undefined)
-
-  let prev = EMPTY
-
-  await update($, deck, d => {
-    prev = d
-
-    return { ...EMPTY, turn: d.turn }
-  })
-
-  if (prev.phase === 'ready' && !prev.isPicked) {
-    await remember($, 'skipped', prev.cards, 10)
-  }
-}
-
-
-const take = async ($: EngineInterface, card: Card, isSent: boolean) => {
-  await update($, deck, d => ({ ...d, isPicked: true }))
-  await remember($, 'picked', [card], 10)
 
   if (isSent) {
-    await $.prompt.submit({ text: card.prompt, asUser: true })
+    queue($, path.firstMove)
   } else {
-    await $.prompt.fill({ text: card.prompt, mode: 'replace' })
+    await $.prompt.fill({ text: path.firstMove, mode: 'replace' })
   }
 }
 
-
 export const register: Register = (on, options) => {
-  cfg.engine = options.engine === 'fast' ? 'fast' : 'fork'
-  cfg.wildness = options.wildness === 'grounded' || options.wildness === 'feral' ? options.wildness : 'sharp'
-  cfg.voice = typeof options.voice === 'string' && options.voice !== '' ? options.voice : cfg.voice
-  cfg.fastModel = typeof options.fastModel === 'string' && options.fastModel !== '' ? options.fastModel : cfg.fastModel
-  const isAuto = options.auto !== false
+  cfg.cadence = options.cadence === 'every' || options.cadence === 'ask' ? options.cadence : 'forks'
+  cfg.fastModel = typeof options.fastModel === 'string' && options.fastModel !== '' ? options.fastModel : 'haiku'
 
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'next',
-      description: 'Oracle: show the dealt next moves, load one (/next 2), send it (/next 2 go), or deal anew (/next new)',
-      argumentHint: '[1|2|3] [go] | new | hide | show | forget',
+      description: 'Oracle: show the paths, load one (/next 2), send it (/next 2 go), or convene a council',
+      argumentHint: '[N] [go] | convene | interview | page | refresh | hide | show',
     })
-
-    if (isAuto) {
-      deal($, 'start')
-    }
+    await loadField($)
 
     return next(e)
   })
 
   on('turn.complete', async ($, e, next) => {
-    if (isAuto && e.agentId === undefined && e.reason === 'answer' && e.answer.trim().length >= 12) {
-      deal($, 'turn')
+    if (e.agentId === undefined && e.reason === 'answer' && e.answer.trim().length >= 12) {
+      const turn = await update($, turns, n => n + 1)
+
+      await loadField($)
+
+      if (cfg.cadence !== 'ask') {
+        $.clock.after(40, () => {
+          void sense($, turn).catch(() => {})
+        })
+      }
     }
 
     return next(e)
   })
 
   on('prompt.submit', async ($, e, next) => {
-    // /next reads the table; clearing it first would eat its own card.
-    if (!/^\/next(\s|$)/.test(e.text)) {
-      await retire($)
+    // /next reads the table, and the Oracle's own prompts are not the artist moving on.
+    if (!/^\/next(\s|$)/.test(e.text) && e.origin.kind !== 'plugin') {
+      await clearNudge($, true)
     }
 
     return next(e)
@@ -244,69 +179,83 @@ export const register: Register = (on, options) => {
       return { text: first === 'hide' ? 'Oracle hidden. /next show wakes it.' : 'Oracle awake.' }
     }
 
-    if (first === 'forget') {
-      await Promise.all(['seen', 'picked', 'skipped'].map(key => $.store.delete(key)))
+    if (first === 'convene') {
+      await convene($, 'asked')
 
-      return { text: 'The oracle forgot your taste and its own history.' }
+      return { text: 'Convening the council…' }
+    }
+
+    if (first === 'interview') {
+      queue($, 'Run the Oracle taste interview. Follow .claude/skills/oracle/SKILL.md, interview mode.')
+
+      return { text: 'Starting the interview…' }
+    }
+
+    if (first === 'page') {
+      try {
+        return { text: `Live field: ${(await $.fs.read(await where($, PAGE_FILE))).trim()}` }
+      } catch {
+        return { text: 'No live page recorded yet. A council publishes it.' }
+      }
+    }
+
+    if (first === 'refresh') {
+      await loadField($)
+    }
+
+    const f = await read($, field)
+
+    if (f === null) {
+      return { text: 'No council has run yet. /next convene calls the first one.' }
     }
 
     const n = Number(first)
 
-    if (Number.isInteger(n) && n >= 1 && n <= 3) {
-      const d = await read($, deck)
-      const card = d.cards[n - 1]
+    if (Number.isInteger(n) && n >= 1) {
+      const path = ordered(f)[n - 1]
 
-      if (card === undefined) {
-        return {
-          text:
-            d.phase === 'thinking'
-              ? 'Still reading the room… try again in a few seconds.'
-              : 'Nothing dealt in that slot. /next new deals a fresh hand.',
-        }
+      if (path === undefined) {
+        return { text: `No path ${n}. /next lists them.` }
       }
 
       const isSent = second === 'go'
 
-      await take($, card, isSent)
+      await take($, path, isSent)
 
-      return { text: isSent ? `Sent: ${card.title}` : `Loaded into the prompt: ${card.title}` }
+      return { text: isSent ? `Sent: ${path.title}` : `Loaded into the prompt: ${path.title}` }
     }
 
-    const d = await read($, deck)
-
-    if (first === '' && d.phase === 'ready') {
-      return { text: renderHand(d) }
-    }
-
-    if (first === '' && d.phase === 'thinking') {
-      return { text: 'Still reading the room…' }
-    }
-
-    await update($, isHidden, () => false)
-    await retire($)
-    deal($, 'reroll')
-
-    return { text: 'Reading the room…' }
+    return { text: renderField(f) }
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
-    const d = await read($, deck)
-    const isOff = await read($, isHidden)
+    const [f, n, isOff] = await Promise.all([read($, field), read($, nudge), read($, isHidden)])
 
-    if (e.props.hasSurvey || e.props.isWorking || isOff || (d.phase === 'idle' && d.note === '')) {
+    if (e.props.hasSurvey || e.props.isWorking || isOff) {
       return next(e)
     }
 
     const { Box, Button, Text } = $.ui.resolve(e)
     const width = e.props.bodyColumns
 
-    if (d.phase !== 'ready') {
+    if (n !== null) {
       return (
         <Box>
-          <Text color="cyan">◈ </Text>
-          <Text dimColor>{d.phase === 'thinking' ? 'oracle: reading the room…' : `oracle: ${d.note}`}</Text>
+          <Text bold color="cyan">
+            ◈ ORACLE{' '}
+          </Text>
+          <Text dimColor>fork: {fit(n.reason, Math.max(12, width - 36))} </Text>
+          <Button key="convene" plain hotkey="c" label="convene" onPress={() => convene($, n.reason)} />
+          <Text dimColor> · </Text>
+          <Button key="dismiss" plain dimColor hotkey="x" label="not now" onPress={() => clearNudge($, true)} />
         </Box>
       )
+    }
+
+    const rows = f === null ? [] : ordered(f).slice(0, Math.max(2, Math.min(9, e.props.maxRows - 2)))
+
+    if (f === null || rows.length === 0) {
+      return next(e)
     }
 
     return (
@@ -316,33 +265,31 @@ export const register: Register = (on, options) => {
             ◈ ORACLE{' '}
           </Text>
           <Text dimColor>
-            {d.turn > 0 ? `after turn ${d.turn}` : 'cold open'} · ctrl+x tab, then 1 2 3 · /next new deals again{' '}
+            {fit(`round ${f.now.round} · ${f.now.headline}`, Math.max(12, width - 24))} · ctrl+x tab, then 1-9{' '}
           </Text>
-          <Button
-            key="hide"
-            plain
-            dimColor
-            label="hide"
-            onPress={() => update($, isHidden, () => true)}
-          />
+          <Button key="hide" plain dimColor label="hide" onPress={() => update($, isHidden, () => true)} />
         </Box>
-        {d.cards.map((card, i) => {
-          const lane = LANES[card.lane]
-          const label = `${lane.glyph} ${lane.label.padEnd(8)} ${card.title}`
-          const tag = card.spends === '' ? '' : ` ⚑ ${card.spends}`
-          const room = Math.max(8, width - label.length - tag.length - 7)
+        {rows.map((p, i) => {
+          const label = `${p.isWildcard ? '✶' : MODES[p.mode].glyph} ${p.title}`
+          const meta = `${RINGS[p.ring]} · ${dollars(p.money)} · `
+          const tag = p.status === 'picked' ? ' ✓ picked' : p.spends === '' ? '' : ` ⚑ ${p.spends}`
+          const room = Math.max(8, width - label.length - meta.length - tag.length - 7)
 
           return (
-            <Box key={`card-${i}`}>
+            <Box key={`row-${p.id}`}>
               <Button
                 key={`pick-${i}`}
                 plain
                 hotkey={String(i + 1)}
                 label={label}
-                onPress={() => take($, card, false)}
+                onPress={() => take($, p, false)}
               />
-              <Text dimColor> {fit(card.why, room)}</Text>
-              {tag !== '' && <Text color="yellow">{tag}</Text>}
+              <Text dimColor>
+                {' '}
+                {meta}
+                {fit(p.why, room)}
+              </Text>
+              {tag !== '' && <Text color={p.status === 'picked' ? 'green' : 'yellow'}>{tag}</Text>}
             </Box>
           )
         })}

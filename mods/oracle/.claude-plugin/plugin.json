@@ -1,50 +1,28 @@
 {
   "name": "oracle",
-  "version": "0.1.0",
-  "description": "Reads the room after every turn and deals three next moves — one sharp, one sideways, one past the edge — grounded in what just happened, what your repo holds, and what you actually pick.",
+  "version": "0.2.0",
+  "description": "A sentinel for the Oracle: senses forks in the road, nudges when an outside view is worth having, shows the council's latest paths, and convenes the council on demand.",
   "author": {
     "name": "domnoval"
   },
   "types": "./types/index.d.ts",
   "userConfig": {
-    "engine": {
+    "cadence": {
       "type": "string",
-      "title": "Engine",
-      "description": "fork: ask the session's own model over the live transcript (sharpest, reads the whole room, cheap while the cache is warm). fast: a small model fed a digest.",
-      "default": "fork",
+      "title": "Cadence",
+      "description": "forks: nudge only at a fork in the road (a finished piece, a new direction, a stall, a decision, a long drift). every: nudge after every turn. ask: never nudge, only /next convene.",
+      "default": "forks",
       "options": [
-        "fork",
-        "fast"
+        "forks",
+        "every",
+        "ask"
       ]
-    },
-    "wildness": {
-      "type": "string",
-      "title": "Wildness",
-      "description": "How far the SIDEWAYS and EDGE lanes are allowed to lean.",
-      "default": "sharp",
-      "options": [
-        "grounded",
-        "sharp",
-        "feral"
-      ]
-    },
-    "voice": {
-      "type": "string",
-      "title": "Voice",
-      "description": "How the suggestions talk.",
-      "default": "direct, witty, a little dark, zero cheerleading"
     },
     "fastModel": {
       "type": "string",
-      "title": "Fast model",
-      "description": "Model alias or id for the fast engine and for cold opens.",
+      "title": "Sensing model",
+      "description": "Model alias or id that decides whether a turn is a fork.",
       "default": "haiku"
-    },
-    "auto": {
-      "type": "boolean",
-      "title": "Deal automatically",
-      "description": "Deal a hand after every turn and at session start. Off: only /next deals.",
-      "default": true
     }
   }
 }

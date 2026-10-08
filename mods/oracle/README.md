@@ -1,58 +1,37 @@
-# Oracle
+# Oracle (mod)
 
-A Claude Code mod that deals three next moves after every turn. Not "add tests". Moves that name the file, the tool, the thing that just happened, and one that goes past where you were looking.
+The mod half of the Oracle: a sentinel inside Claude Code. The thinking lives in the council (`.claude/skills/oracle/`), the taste in `oracle/lens.md`, the data contract in `oracle/schema.md`. This mod does four things:
 
-```
-◈ ORACLE after turn 7 · ctrl+x tab, then 1 2 3 · /next new deals again   hide
-1: ▲ NEXT      Pipe the lattice into the shader   Your sigil is static; the shader already owns the beat.
-2: ◇ SIDEWAYS  Render it as a struck bell         Geometry as resonance, not picture.
-3: ☾ EDGE      Let it eat itself                  Speculation: collapse shows what the seed was.   ⚑ asks first
-```
+1. **Senses forks.** After a turn, a small model decides whether this is a fork in the road: a finished piece, a new direction, a stall, a decision about to be made, a long drift. Routine progress is not a fork.
+2. **Nudges, once, quietly.** On a fork it raises a one-line band and a status line. It backs off for three turns after a nudge, and for three more if the nudge was ignored.
+3. **Shows the council's paths.** It reads `oracle/field.json` and lists the open paths above the prompt, one hotkey each. Picking one loads its first move into the prompt and records the pick in the file.
+4. **Convenes the council on demand.** `/next convene`.
 
-## The three lanes
+It deliberately generates no suggestions of its own. Cheap per-turn hands read the same thread you were already in, so they could only tell you what you were about to type.
 
-| Lane | What it is |
-|---|---|
-| `▲ NEXT` | What a sharp collaborator does right now, given exactly what just happened |
-| `◇ SIDEWAYS` | Invert an assumption, or cross-wire two things that already exist here |
-| `☾ EDGE` | What hasn't been seen yet. Darker, stranger, higher ceiling. Speculation is labeled |
-
-Each card carries a complete prompt you can send as written. `⚑` marks a move that would spend credits, deploy, publish or write to a store, so it matches the repo's pause list before you press it.
-
-## Why the suggestions are relevant
-
-- **The fork engine** asks the session's own model over the live transcript, served from the prompt cache. It has read everything you have, so nothing is summarized away.
-- **Repo grounding**: branch, uncommitted files, recent commits, your `CLAUDE.md`.
-- **Toolbox grounding**: the MCP servers connected right now, folded by server, so it proposes moves your tools can actually run.
-- **Taste memory** (`$.store`, across sessions): what you pick leans the next hand toward it, what you ignore leans away, and it never repeats a title it has dealt.
-- **A rubric with teeth**: banned filler (tests, docs, refactor, "explore"), a requirement to name something real from the room, three genuinely different directions.
-
-## Use
+## Commands
 
 | | |
 |---|---|
-| `ctrl+x tab`, then `1` `2` `3` | Load that card into the prompt. Enter sends it |
-| `/next` | Print the current hand as text (works on every surface) |
-| `/next 2` · `/next 2 go` | Load card 2 into the prompt · send it now |
-| `/next new` | Deal a fresh hand |
-| `/next hide` · `/next show` | Hide or wake the band |
-| `/next forget` | Wipe taste memory and dealt history |
+| `/next` | Print the council's paths as text (works on every surface) |
+| `/next 2` · `/next 2 go` | Load path 2's first move into the prompt · send it |
+| `/next convene` | Call a council now |
+| `/next interview` | Redo the taste interview |
+| `/next page` | Print the live Field page link |
+| `/next refresh` · `hide` · `show` | Re-read the field file · hide or wake the band |
+
+Band: `ctrl+x tab`, then the number (or `c` to convene, `x` for "not now").
 
 ## Config
 
-Set in `/config` or `pluginConfigs.oracle.options`.
-
 | Option | Default | |
 |---|---|---|
-| `engine` | `fork` | `fork` reads the live transcript. `fast` feeds a digest to a small model |
-| `wildness` | `sharp` | `grounded`, `sharp` or `feral`: how far SIDEWAYS and EDGE may lean |
-| `voice` | direct, witty, a little dark, zero cheerleading | How the cards talk |
-| `fastModel` | `haiku` | Model for the fast engine, cold opens and fork fallback |
-| `auto` | `true` | Deal after every turn and at session start. Off: only `/next` deals |
+| `cadence` | `forks` | `forks` nudges only at forks. `every` nudges after each turn. `ask` never nudges |
+| `fastModel` | `haiku` | Model that decides whether a turn is a fork |
 
 ## Surfaces
 
-The band is a drawn mod: it renders in the terminal and the desktop app's Code tab. In a cloud session nothing draws, so `/next` prints the hand and a status line says when one is ready.
+The band is a drawn mod: terminal and the desktop app's Code tab. In a cloud session nothing draws, so the live Field page and `/next` text are the display there.
 
 ## Develop
 
