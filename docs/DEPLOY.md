@@ -1,25 +1,35 @@
 # Deploy map
 
-Snapshot of 2026-10-07, read-only. Nothing was archived, paused, deleted or changed. Source: the Vercel API, the live pages, and the deploy metadata of 49 projects across two teams.
+Snapshot of 2026-10-07, updated 2026-10-08. Nothing on Vercel was archived, paused, deleted or changed. Source: the Vercel API, the live pages, and the deploy metadata of 49 projects across two teams. The 2026-10-08 update adds the Pink TV repo's own README, live checks of the domains, a fresh look at both production projects, and a list of what changed in the 137-studio repo since the snapshot (see Changes since the snapshot).
 
 ## Production at a glance
 
 | What | Where it lives |
 |---|---|
 | The public site, www.the37thmove.com | Vercel project **studio-x37-television-preview** (Quantum Tonic team). Vite. Built from the repo `Domnoval/Pink-Television-Website-`. Last production deploy 2026-09-27. |
-| the37thmove.com, tonicthoughtstudios.com, 137studios.com (and their www forms) | All attached to the same project and redirecting (308) to www.the37thmove.com. |
+| the37thmove.com, tonicthoughtstudios.com, 137studios.com (and their www forms) | All attached to the same project and redirecting (308) to www.the37thmove.com. Checked live on 2026-10-08 for tonicthoughtstudios.com, www.tonicthoughtstudios.com and the37thmove.com. 137studios.com could not be reached from the session that made this check (proxy error), so its redirect is read from the project's domain list only. |
 | shop.the37thmove.com | A Shopify storefront ("Studio 137"). Not on Vercel. |
 | console.the37thmove.com | Vercel project **studio137**. "The console that turns on you". Separate and healthy. |
 | tccyg.com, twincityconcreteyardandgarden.com | Vercel project **kurts-website-final**. A **client's live site** (Twin City Concrete Yard & Garden), built from `Domnoval/tccyg-site` and edited by the client through a CMS. Never touch it. |
 
 The pink TV is the first row. The project name does not say "pink": the pink is in the repo name and the hero image.
 
+### The pink TV repo (`Domnoval/Pink-Television-Website-`), read 2026-10-08
+
+- **Release flow, from its README:** changes ship through a release branch and pull request, a protected Vercel preview, browser verification, and then the exact candidate is promoted to production.
+- **Protection:** the Vercel project has Vercel Authentication on for all previews and production deployment URLs. The custom domains are public: a plain request to www.the37thmove.com returned the site.
+- **`noindex` is deliberate:** the homepage sends `<meta name="robots" content="noindex, nofollow">`, and PR #18 says "Existing noindex policy is preserved". Remove it only when you want search engines to find the site.
+- **Open PRs at the time of reading,** all with CI (build and channel tests), GitGuardian and Vercel green:
+  - **#19** (ready): routes collectors to paintings, prints and commissions. Small.
+  - **#18** (draft): station directory and a shared signal envelope. Its base is `feat/sigil-gun-lineup`, not `main`. The PR says the audio needs the owner's listening check and gestures need a real phone.
+  - **#20** (draft): Sigil Gun print checkout and paid-order processing. Checkout is closed by default and in production, and the custom Shopify product is still draft. Neon, real webhook credentials and Printful delivery are not set up yet.
+
 ## Repo to project
 
 | Repo | Vercel projects that build it | Notes |
 |---|---|---|
 | `Domnoval/Pink-Television-Website-` | studio-x37-television-preview | Production. |
-| `Domnoval/137-studio` (Next.js) | **137-studio** and **tonic-quantum-leap** | tonic-quantum-leap is a duplicate. Its deployments are blocked, which puts a permanent red check on PRs. 137-studio has no custom domain and no production deploy since 2026-05-04. |
+| `Domnoval/137-studio` (Next.js) | **137-studio** and **tonic-quantum-leap** | tonic-quantum-leap is a duplicate. Its deployments are blocked, which put a permanent red check on PRs. 137-studio has no custom domain. Its last production deploy is 2026-10-07 (the merge of PR #12, see Changes since the snapshot); before that it was 2026-05-04. You have said this is not the site you use anymore. |
 | `Domnoval/tccyg-site` | kurts-website-final (live), kurts-patched-rebuild (empty) | Client site. |
 | `Domnoval/Simple-website` | the37thmove | Superseded front door. |
 | `Domnoval/THE_37TH_MOVE` | the-37-th-move and 1.4 to 1.8 (TEAM_CHEEZE) | Paused duplicates. |
@@ -27,6 +37,17 @@ The pink TV is the first row. The project name does not say "pink": the pink is 
 ## Merging does not publish
 
 Merging a PR to `137-studio` main builds the 137-studio project only. It does not publish anything on your public domains. A page that must be public has to be added to the pink TV repo, or the domain must be pointed at a different project.
+
+**Unverified for the pink TV repo:** whether a merge to its `main` goes live. The README describes a separate promote step. The deployment list, though, shows two production deployments created seconds apart on 2026-09-27, one from `main` at `3abb516` (the merge of PR #17) and one from the branch `feat/sigil-gun-lineup` at `cda0c00`, both under the owner's account. That could be a manual release or an automatic one. Until you check the project's Git settings in Vercel, treat every merge to the pink TV `main` as possibly live.
+
+## Changes since the snapshot
+
+All of these are in the `137-studio` GitHub repo. Nothing on Vercel was changed by hand.
+
+- **PR #12** (gallery sourced from `works.ts`) was merged to `main` on 2026-10-07 (`5f6b6d2`) after a fix restored the painting The Delegate, which the PR had hidden on a false "corrupt file" claim. The merge triggered a normal production build of the 137-studio Vercel project (READY, 2026-10-07). It is not on any custom domain.
+- **PR #11** (native Shopify `/shop`) was closed on 2026-10-07. The live Shopify store already covers the shop.
+- **PRs #7, #9, #10, #13, #14 and #15** were closed on 2026-10-08. No branch was deleted, so each can be reopened. The branches for #7 and #10 carry commits that park them under an unlisted `/lab` route.
+- With no open PRs left in `137-studio`, the red check from `tonic-quantum-leap` has nothing to attach to. It would come back on the next PR, so disconnecting that duplicate project is still tidy but no longer urgent.
 
 ## Security follow-ups
 
@@ -52,8 +73,8 @@ Only **project-f8yrf** passed two independent checks (an empty project, no deplo
 |---|---|---|---|---|---|---|
 | studio-x37-television-preview | Quantum Tonic | live-production | 2026-09-27 READY | www.the37thmove.com + 3 redirecting apex domains | Pink retro TV landing page and the Studio X37 app lineup | keep |
 | studio137 | Quantum Tonic | channel-or-app | 2026-06-09 READY | console.the37thmove.com | "Studio 137: The console that turns on you" | keep |
-| 137-studio | Quantum Tonic | experiment | 2026-05-04 READY | none | The Next.js app: /137 temple, geometry, repeat forge and more | keep |
-| tonic-quantum-leap | Quantum Tonic | duplicate | 2026-05-04 READY (latest BLOCKED) | none | Duplicate of 137-studio. Source of the red check | disconnect the repo (your Vercel dashboard) |
+| 137-studio | Quantum Tonic | experiment | 2026-10-07 READY (PR #12 merge) | none | The Next.js app: /137 temple and the gallery. You have said it is not the site you use anymore | hold: no action taken |
+| tonic-quantum-leap | Quantum Tonic | duplicate | 2026-05-04 READY (latest BLOCKED) | none | Duplicate of 137-studio. Source of the red check on PRs | disconnect the repo (your Vercel dashboard) |
 | the37thmove | Quantum Tonic | stale | 2026-09-10 READY | none | Old front door from `Simple-website`, superseded | hold: confirm nothing links to it |
 | transmission-037 | Quantum Tonic | unknown | 2026-07-20 READY | none | Not inspected closely | hold |
 | 137-art-vault | Quantum Tonic | channel-or-app | 2026-04-02 READY | none | Dark-themed artwork inventory and catalog manager (Space Grotesk and Tailwind UI) for tracking works by medium, status,… | keep |
@@ -107,7 +128,9 @@ Only **project-f8yrf** passed two independent checks (an empty project, no deplo
 
 ## What is not verified
 
-- The repos behind most projects were out of reach (this session can read only 137-studio and tabula-rosetta), so recent commit activity is unknown for them.
+- The repos behind most projects were out of reach (the session that made this map could read only 137-studio, tabula-rosetta and, from 2026-10-08, the pink TV repo, the last one read-only), so recent commit activity is unknown for the rest.
+- Whether merging to the pink TV `main` publishes automatically (see Merging does not publish).
+- Whether previews of projects other than the pink TV one are public. The pink TV project has Vercel Authentication on.
 - Env vars were checked by name only where noted, and Speed Insights and integrations could not be read.
 - Page content was not visible for projects that are paused or behind Vercel login.
 - Role labels are one reviewer's reading of each project's page and metadata, not a decision by you.
