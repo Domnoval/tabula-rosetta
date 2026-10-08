@@ -253,11 +253,16 @@ export const register: Register = (on, options) => {
     const n = Number(first)
 
     if (Number.isInteger(n) && n >= 1 && n <= 3) {
-      const { cards } = await read($, deck)
-      const card = cards[n - 1]
+      const d = await read($, deck)
+      const card = d.cards[n - 1]
 
       if (card === undefined) {
-        return { text: 'Nothing dealt in that slot. /next deals a new hand.' }
+        return {
+          text:
+            d.phase === 'thinking'
+              ? 'Still reading the room… try again in a few seconds.'
+              : 'Nothing dealt in that slot. /next new deals a fresh hand.',
+        }
       }
 
       const isSent = second === 'go'

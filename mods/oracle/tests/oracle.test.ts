@@ -243,4 +243,46 @@ describe('flow', () => {
     expect(shown.text).toContain('Let it eat itself')
     expect(filled).toEqual(['Render the lattice as a struck bell: strike points, decay rings.'])
   })
+
+  test('/next 1 while the hand is still being conjured says so', async ($, on) => {
+    const clock = mock.clock(on)
+    let release = () => {}
+    const gate = new Promise<void>(resolve => {
+      release = resolve
+    })
+
+    mock.store(on)
+    on('ui.status', () => ({ value: undefined }) as never)
+    on('turn.complete', () => ({ text: '' }))
+    on('prompt.fill', () => ({ isFilled: true }) as never)
+    on('model.fork', async () => {
+      await gate
+
+      return { value: { isAnswered: true, text: HAND, usage: { input_tokens: 1, output_tokens: 1 } } } as never
+    })
+    on('process.run', () => ({ value: { exitCode: 0, stdout: '', stderr: '' } }) as never)
+    on('fs.read', () => ({ value: '' }) as never)
+    on('session.root', () => ({ value: '/repo' }) as never)
+    on('tool.list', () => ({ value: [] }) as never)
+
+    await $.turn.complete({
+      answer: 'Built the lattice renderer and wired the controls.',
+      durationMs: 1000,
+      isAborted: false,
+      turnId: 't5',
+      reason: 'answer',
+    })
+    await clock.advance(100)
+
+    const early = await $.command.run({ command: 'next', args: '1' } as never)
+
+    expect(early.text).toContain('Still reading the room')
+
+    release()
+    await clock.advance(100)
+
+    const late = await $.command.run({ command: 'next', args: '1' } as never)
+
+    expect(late.text).toContain('Loaded into the prompt')
+  })
 })
