@@ -273,8 +273,47 @@ details.earlier[open] summary{color:var(--ink)}
 .dr-doubt{font:400 12.5px/1.55 var(--f-mono);color:var(--ink2);border-left:2px solid var(--line2);padding:2px 0 2px 10px;max-width:62ch}
 .dr-doubt b{font:700 12px/1 var(--f-display);letter-spacing:.2em;text-transform:uppercase;color:var(--ink);margin-right:8px}
 .dr-money{display:inline-block;align-self:flex-start;font:700 13px/1 var(--f-display);letter-spacing:.2em;text-transform:uppercase;border:1px solid var(--sig);color:var(--sig);padding:6px 9px}
-.askback{font:500 13px/1.5 var(--f-mono);color:var(--ink);border:1px solid var(--line2);padding:8px 10px;max-width:62ch;margin-top:8px}
-.askback b{font:700 12px/1 var(--f-display);letter-spacing:.2em;text-transform:uppercase;color:var(--sig);margin-right:8px}
+/* ---------- the Oracle's question: one per round, answered right here ----------
+   One card, moved between two hosts: the readout column on the console layout, the headline block everywhere else.
+   Options are one-tap answers; own words go through the field. The answered state is read back from the signals. */
+.qhost[hidden],.qcard [hidden]{display:none!important}
+.nowblock .qhost{margin-top:10px;max-width:62ch;white-space:normal}
+.qcard{position:relative;display:flex;flex-direction:column;gap:12px;min-width:0;border:1px solid var(--line2);background:var(--panel);padding:14px 14px 15px}
+.qcard::before{content:"";position:absolute;left:-1px;top:-1px;width:56px;height:3px;background:var(--sig)}
+.qc-kick{font:600 10px/1.2 var(--f-mono);letter-spacing:.2em;text-transform:uppercase;color:var(--sig)}
+.qc-q{font:600 21px/1.18 var(--f-display);letter-spacing:.01em;color:var(--ink);text-wrap:pretty;overflow-wrap:anywhere}
+.qc-ask{display:flex;flex-direction:column;gap:12px}
+.qc-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:6px}
+.qc-opt{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px 8px 10px;text-align:left;background:transparent;border:1px solid var(--line2);color:var(--ink);font:700 16px/1.12 var(--f-display);letter-spacing:.07em;text-transform:uppercase;overflow-wrap:anywhere}
+.qc-k{flex:none;width:12px;font:600 11px/1 var(--f-mono);letter-spacing:0;color:var(--sig)}
+.qc-opt:hover:not(:disabled):not([aria-disabled="true"]){background:var(--panel2);border-color:var(--ink2)}
+.qc-opt[aria-pressed="true"]{background:var(--sig);border-color:var(--sig);color:var(--on-sig)}
+.qc-opt[aria-pressed="true"] .qc-k{color:var(--on-sig)}
+.qc-opt.sending{border-color:var(--sig);background:var(--sig-wash)}
+.qc-opt:disabled,.qc-opt[aria-disabled="true"]{cursor:default}
+.qc-opt:disabled:not([aria-pressed="true"]){color:var(--ink3);border-style:dashed}
+.qc-opt:disabled:not([aria-pressed="true"]) .qc-k{color:var(--ink3)}
+.qc-own{display:flex;flex-direction:column;gap:6px}
+.qc-row{display:flex;gap:6px;align-items:stretch}
+.qc-row textarea{flex:1 1 auto;min-width:0;display:block;resize:none;background:var(--bg);border:1px solid var(--line2);border-radius:0;padding:8px 10px;font:400 13px/1.45 var(--f-mono);color:var(--ink);min-height:38px;max-height:96px}
+.qc-row textarea::placeholder{color:var(--ink3)}
+.qc-row textarea:focus-visible{outline-offset:0;border-color:var(--ink)}
+.qc-row textarea:disabled{border-style:dashed;cursor:default}
+.qc-send,.qc-change{flex:none;background:transparent;border:1px solid var(--line2);padding:0 14px;font:700 15px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--ink);min-height:38px}
+.qc-send:hover:not(:disabled):not([aria-disabled="true"]),.qc-change:hover:not(:disabled){background:var(--panel2);border-color:var(--ink2)}
+.qc-send:disabled,.qc-change:disabled{color:var(--ink3);border-style:dashed;cursor:default}
+.qc-send[aria-disabled="true"]{cursor:default}
+.qc-keep{align-self:flex-start}
+.qc-done{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.qc-pick{display:flex;align-items:center;gap:10px;max-width:100%;background:var(--sig);color:var(--on-sig);padding:9px 12px 8px 10px;font:800 18px/1.1 var(--f-display);letter-spacing:.07em;text-transform:uppercase;overflow-wrap:anywhere}
+.qc-pick .qc-k{color:var(--on-sig)}
+.qc-said{align-self:stretch;font:500 13px/1.5 var(--f-mono);color:var(--ink);border-left:2px solid var(--sig);padding:2px 0 2px 10px;white-space:pre-wrap;overflow-wrap:anywhere}
+.qc-foot{align-self:stretch;display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap;padding-top:2px}
+.qc-note{font:500 11.5px/1.45 var(--f-mono);color:var(--ink2);flex:1 1 14ch;min-width:0}
+.qc-msg{font:500 12px/1.45 var(--f-mono);color:var(--ink2)}
+.qc-msg:empty{margin-top:-12px}
+.qc-msg.bad{color:var(--ink)}
+.qc-msg.bad::before{content:"";display:inline-block;width:8px;height:8px;background:var(--sig);margin-right:8px;vertical-align:1px}
 .mv{position:relative;border:1px solid var(--line2);background:var(--bg)}
 .mv pre{margin:0;padding:10px 12px;font:400 12.5px/1.6 var(--f-mono);color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere;max-height:214px;overflow:auto;user-select:text;-webkit-user-select:text}
 .mv-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 5px 5px 12px;border-bottom:1px solid var(--line)}
@@ -409,6 +448,7 @@ dialog.lens::backdrop{background:var(--scrim)}
   .ask label small{display:inline;margin-left:10px}
   .ask-msg{grid-column:1 / 3}
   .meter{grid-template-columns:70px minmax(0,1fr) auto}
+  .qcard{padding:14px 12px 14px}
   .row-btn{grid-template-columns:48px 26px minmax(0,1fr);grid-template-areas:"ch gl main" "ch gl meta" "ch gl st";row-gap:5px}
   .r-st{justify-self:start}
 }
@@ -445,6 +485,11 @@ dialog.lens::backdrop{background:var(--scrim)}
 }
 @media (min-width:1200px) and (min-height:600px){
   .app[data-view="list"] .nowblock .sit{display:none}
+}
+/* the question card on phones and touch screens: 44px targets, 16px field text so phones do not zoom in */
+@media (max-width:759px), (pointer:coarse){
+  .qc-send,.qc-change,.qc-keep{min-height:44px}
+  .qc-row textarea{min-height:44px;font-size:16px;line-height:1.35}
 }
 
 /* reduced motion */
@@ -486,10 +531,10 @@ dialog.lens::backdrop{background:var(--scrim)}
 
   <main class="main" id="main">
     <aside class="readout" id="readout" aria-label="Situation and key">
+      <div class="rd-block rd-live rd-sit-block qhost" id="rd-q" hidden></div>
       <section class="rd-block rd-live rd-sit-block" aria-labelledby="rd-sit-h">
         <h2 class="lbl" id="rd-sit-h">Situation</h2>
         <p class="sit" id="rd-sit"></p>
-        <p class="askback" id="rd-q" hidden><b>Asks</b><span id="rd-q-t"></span></p>
       </section>
       <section class="rd-block rd-live" aria-labelledby="rd-modes-h">
         <h2 class="lbl" id="rd-modes-h">Four modes</h2>
@@ -508,8 +553,8 @@ dialog.lens::backdrop{background:var(--scrim)}
       <div class="nowblock" id="nowblock">
         <span class="kick" id="nb-kick">Now</span>
         <h1 id="nb-h"></h1>
+        <div class="qhost" id="nb-q" hidden></div>
         <p class="sit" id="nb-sit"></p>
-        <p class="askback" id="nb-q" hidden><b>Asks</b><span id="nb-q-t"></span></p>
       </div>
       <div class="mapview" id="mapview">
         <div class="dial" id="dial">
@@ -696,11 +741,17 @@ function normPath(id, d) {
 function normNow(d) {
   if (!d) return null;
   const str = (v, m) => typeof v === 'string' ? v.slice(0, m) : '';
+  const question = str(d.question, 500).trim();
+  // one question a round: a stable id (falls back to the question text) and up to four one-tap options
+  const qid = typeof d.questionId === 'string' && d.questionId.trim() ? d.questionId.trim().slice(0, 120) : question;
+  const opts = Array.isArray(d.questionOptions)
+    ? d.questionOptions.filter(x => typeof x === 'string').map(x => x.trim().slice(0, 60).trim()).filter((x, i, a) => x && a.indexOf(x) === i).slice(0, 4)
+    : [];
   return {
     headline: str(d.headline, 240).trim(), situation: str(d.situation, 800).trim(),
     round: Number.isFinite(Number(d.round)) ? Number(d.round) : null, convenedAt: str(d.convenedAt, 40),
     council: Array.isArray(d.council) ? d.council.filter(x => typeof x === 'string').map(x => x.slice(0, 40)) : [],
-    trigger: str(d.trigger, 24), question: str(d.question, 500).trim()
+    trigger: str(d.trigger, 24), question, questionId: question ? qid : '', questionOptions: question ? opts : []
   };
 }
 function normLens(d) {
@@ -1121,8 +1172,6 @@ function renderHub() {
   $('#nb-h').textContent = ph === 'live' ? ((ST.now && ST.now.headline) || 'No headline filed') : (ph === 'empty' ? 'No signal. Dead air.' : ph === 'nodb' ? 'No line to the archive.' : 'Scanning the band.');
   const sit = ph === 'live' && ST.now ? ST.now.situation : '';
   $('#nb-sit').textContent = sit; $('#nb-sit').hidden = !sit;
-  const qq = ph === 'live' && ST.now ? ST.now.question : '';
-  $('#nb-q-t').textContent = qq; $('#nb-q').hidden = !qq;
 }
 function emptyCard(kind) {
   if (kind === 'nodb') {
@@ -1141,8 +1190,6 @@ function emptyCard(kind) {
 function renderReadout() {
   const ph = ST.phase;
   $('#rd-sit').textContent = (ST.now && ST.now.situation) || 'The council has not filed a situation yet.';
-  const rq = ph === 'live' && ST.now ? ST.now.question : '';
-  $('#rd-q-t').textContent = rq; $('#rd-q').hidden = !rq;
   const empty = $('#rd-empty'); empty.replaceChildren();
   if (ph === 'empty' || ph === 'nodb') empty.append(emptyCard(ph));
   // modes
@@ -1459,7 +1506,7 @@ function applyLens(snap) {
   ST.lensSig = sig; ST.lens = l; if (lensDlg.open) renderLens(); return true;
 }
 function applySignals(docs) {
-  const list = docs.map(d => { const x = d.data() || {}; return { id: d.id, type: String(x.type || ''), pathId: typeof x.pathId === 'string' ? x.pathId : '', text: typeof x.text === 'string' ? x.text : '', at: typeof x.at === 'string' ? x.at : '', handled: x.handled === true }; });
+  const list = docs.map(d => { const x = d.data() || {}; return { id: d.id, type: String(x.type || ''), pathId: typeof x.pathId === 'string' ? x.pathId : '', questionId: typeof x.questionId === 'string' ? x.questionId : '', choice: typeof x.choice === 'string' ? x.choice : '', text: typeof x.text === 'string' ? x.text : '', at: typeof x.at === 'string' ? x.at : '', handled: x.handled === true }; });
   const sig = JSON.stringify(list);
   if (sig === ST.sigSig) return false;
   ST.sigSig = sig; ST.signals = list; ST.askT = 0; return true;
