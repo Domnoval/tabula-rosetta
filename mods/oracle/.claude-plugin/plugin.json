@@ -1,0 +1,28 @@
+{
+  "name": "oracle",
+  "version": "0.3.0",
+  "description": "A sentinel for the Oracle council: senses forks in the road, nudges once, shows the council's paths above the prompt, and takes one-tap answers to the Oracle's question (/next a-d, /next answer).",
+  "author": {
+    "name": "domnoval"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "cadence": {
+      "type": "string",
+      "title": "Cadence",
+      "description": "forks: nudge only at a fork in the road (a finished piece, a new direction, a stall, a decision, a long drift). every: nudge after every turn. ask: never nudge, only /next convene.",
+      "default": "forks",
+      "options": [
+        "forks",
+        "every",
+        "ask"
+      ]
+    },
+    "fastModel": {
+      "type": "string",
+      "title": "Sensing model",
+      "description": "Model alias or id that decides whether a turn is a fork.",
+      "default": "haiku"
+    }
+  }
+}

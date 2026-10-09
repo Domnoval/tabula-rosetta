@@ -1,3 +1,5 @@
 .claude/pause-log.jsonl
 .claude/.pause-approvals/
 .claude/settings.local.json
+# The Oracle mod's answer inbox holds the artist's own words; local only, never committed (see oracle/schema.md)
+oracle/inbox.jsonl
