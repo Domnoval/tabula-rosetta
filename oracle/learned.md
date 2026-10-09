@@ -26,6 +26,12 @@ None held right now.
 
 ---
 
+## 2026-10-09 · r3-buyer-reach
+
+- **Question:** Without digging, how many past buyers of your paintings or commissions could you still reach?
+- **Answer:** Three or more (chat)
+- **What it changes:** Pendants' premise holds: there is a buyer in reach to answer, so the money seat stands. Split tallies, held on the bench for exactly this answer, is up for revival at the next council. A second ask to the same buyers still waits until the first one has an answer. Who the buyers are stays with the artist and never enters the repo. Lens unchanged.
+
 ## 2026-10-09 · Done right the first time
 
 - **Question:** none; said while the bridge to a new thread was being finished.
