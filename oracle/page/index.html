@@ -10,7 +10,7 @@
 :root{
   --f-display:'Big Shoulders Display','Arial Narrow','Roboto Condensed','Helvetica Neue',Impact,sans-serif;
   --f-mono:'Azeret Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
-  --bg:#08060B; --panel:#100A15; --panel2:#181020; --line:#2E1E36; --line2:#5A3A63;
+  --bg:#08060B; --panel:#100A15; --panel2:#181020; --line:#2E1E36; --line2:#5A3A63; --edge:#7E5C88;
   --ink:#F4EAF3; --ink2:#BCA6BD; --ink3:#9A839C;
   --sig:#FF3FB4; --sig-wash:rgba(255,63,180,.14); --sig-wash2:rgba(255,63,180,.32); --on-sig:#12040E;
   --counter:#C8FF2E; --counter-ink:#C8FF2E; --counter-wash:rgba(200,255,46,.12); --counter-wash2:rgba(200,255,46,.3);
@@ -21,7 +21,7 @@
 }
 @media (prefers-color-scheme: light){
   :root:not([data-theme="dark"]){
-    --bg:#F3EDF0; --panel:#FBF8FA; --panel2:#EBE2E7; --line:#D5C8CF; --line2:#8F7B89;
+    --bg:#F3EDF0; --panel:#FBF8FA; --panel2:#EBE2E7; --line:#D5C8CF; --line2:#8F7B89; --edge:#8F7B89;
     --ink:#1B1220; --ink2:#51425A; --ink3:#6B5A73;
     --sig:#C4007E; --sig-wash:rgba(196,0,126,.11); --sig-wash2:rgba(196,0,126,.26); --on-sig:#FFFFFF;
     --counter:#5C9300; --counter-ink:#3A6000; --counter-wash:rgba(92,147,0,.13); --counter-wash2:rgba(92,147,0,.3);
@@ -30,7 +30,7 @@
   }
 }
 :root[data-theme="light"]{
-  --bg:#F3EDF0; --panel:#FBF8FA; --panel2:#EBE2E7; --line:#D5C8CF; --line2:#8F7B89;
+  --bg:#F3EDF0; --panel:#FBF8FA; --panel2:#EBE2E7; --line:#D5C8CF; --line2:#8F7B89; --edge:#8F7B89;
   --ink:#1B1220; --ink2:#51425A; --ink3:#6B5A73;
   --sig:#C4007E; --sig-wash:rgba(196,0,126,.11); --sig-wash2:rgba(196,0,126,.26); --on-sig:#FFFFFF;
   --counter:#5C9300; --counter-ink:#3A6000; --counter-wash:rgba(92,147,0,.13); --counter-wash2:rgba(92,147,0,.3);
@@ -275,34 +275,45 @@ details.earlier[open] summary{color:var(--ink)}
 .dr-money{display:inline-block;align-self:flex-start;font:700 13px/1 var(--f-display);letter-spacing:.2em;text-transform:uppercase;border:1px solid var(--sig);color:var(--sig);padding:6px 9px}
 /* ---------- the Oracle's question: one per round, answered right here ----------
    One card, moved between two hosts: the readout column on the console layout, the headline block everywhere else.
-   Options are one-tap answers; own words go through the field. The answered state is read back from the signals. */
+   Options are one-tap answers; own words go through the field, alone (Send) or with the option tapped. The answered state is
+   read back from the signals: the latest answer for this question, whole. Interactive edges use --edge, which clears 3:1. */
 .qhost[hidden],.qcard [hidden]{display:none!important}
-.nowblock .qhost{margin-top:10px;max-width:62ch;white-space:normal}
+.nowblock .qhost{margin:10px 0 6px;max-width:62ch;white-space:normal}
 .qcard{position:relative;display:flex;flex-direction:column;gap:12px;min-width:0;border:1px solid var(--line2);background:var(--panel);padding:14px 14px 15px}
 .qcard::before{content:"";position:absolute;left:-1px;top:-1px;width:56px;height:3px;background:var(--sig)}
 .qc-kick{font:600 10px/1.2 var(--f-mono);letter-spacing:.2em;text-transform:uppercase;color:var(--sig)}
 .qc-q{font:600 21px/1.18 var(--f-display);letter-spacing:.01em;color:var(--ink);text-wrap:pretty;overflow-wrap:anywhere}
+.qcard[data-qlen="m"] .qc-q{font-size:19px}
+.qcard[data-qlen="l"] .qc-q{font-size:17px;line-height:1.2}
 .qc-ask{display:flex;flex-direction:column;gap:12px}
 .qc-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:6px}
-.qc-opt{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px 8px 10px;text-align:left;background:transparent;border:1px solid var(--line2);color:var(--ink);font:700 16px/1.12 var(--f-display);letter-spacing:.07em;text-transform:uppercase;overflow-wrap:anywhere}
+.qc-opt{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 12px 8px 10px;text-align:left;background:transparent;border:1px solid var(--edge);color:var(--ink);font:700 16px/1.12 var(--f-display);letter-spacing:.07em;text-transform:uppercase;overflow-wrap:anywhere}
+.readout .qc-opt{font-size:15px;letter-spacing:.05em}
 .qc-k{flex:none;width:12px;font:600 11px/1 var(--f-mono);letter-spacing:0;color:var(--sig)}
-.qc-opt:hover:not(:disabled):not([aria-disabled="true"]){background:var(--panel2);border-color:var(--ink2)}
 .qc-opt[aria-pressed="true"]{background:var(--sig);border-color:var(--sig);color:var(--on-sig)}
 .qc-opt[aria-pressed="true"] .qc-k{color:var(--on-sig)}
 .qc-opt.sending{border-color:var(--sig);background:var(--sig-wash)}
+.qc-opt.sending .qc-k{color:var(--ink)}
 .qc-opt:disabled,.qc-opt[aria-disabled="true"]{cursor:default}
-.qc-opt:disabled:not([aria-pressed="true"]){color:var(--ink3);border-style:dashed}
-.qc-opt:disabled:not([aria-pressed="true"]) .qc-k{color:var(--ink3)}
+.qc-opt:disabled:not([aria-pressed="true"]),.qc-opt[aria-disabled="true"]:not([aria-pressed="true"]):not(.sending){color:var(--ink3);border-style:dashed}
+.qc-opt:disabled:not([aria-pressed="true"]) .qc-k,.qc-opt[aria-disabled="true"]:not([aria-pressed="true"]):not(.sending) .qc-k{color:var(--ink3)}
 .qc-own{display:flex;flex-direction:column;gap:6px}
 .qc-row{display:flex;gap:6px;align-items:stretch}
-.qc-row textarea{flex:1 1 auto;min-width:0;display:block;resize:none;background:var(--bg);border:1px solid var(--line2);border-radius:0;padding:8px 10px;font:400 13px/1.45 var(--f-mono);color:var(--ink);min-height:38px;max-height:96px}
+.qc-row textarea{flex:1 1 auto;min-width:0;display:block;resize:none;background:var(--bg);border:1px solid var(--edge);border-radius:0;padding:8px 10px;font:400 13px/1.45 var(--f-mono);color:var(--ink);min-height:38px;max-height:96px}
 .qc-row textarea::placeholder{color:var(--ink3)}
 .qc-row textarea:focus-visible{outline-offset:0;border-color:var(--ink)}
 .qc-row textarea:disabled{border-style:dashed;cursor:default}
-.qc-send,.qc-change{flex:none;background:transparent;border:1px solid var(--line2);padding:0 14px;font:700 15px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--ink);min-height:38px}
-.qc-send:hover:not(:disabled):not([aria-disabled="true"]),.qc-change:hover:not(:disabled){background:var(--panel2);border-color:var(--ink2)}
-.qc-send:disabled,.qc-change:disabled{color:var(--ink3);border-style:dashed;cursor:default}
+.qc-hint{font:500 11.5px/1.45 var(--f-mono);color:var(--ink2)}
+.qc-send,.qc-change{flex:none;background:transparent;border:1px solid var(--edge);padding:0 14px;font:700 15px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--ink);min-height:38px}
+.qc-send.sending{border-color:var(--sig);background:var(--sig-wash)}
+.qc-send:disabled,.qc-change:disabled,.qc-send[aria-disabled="true"]:not(.sending){color:var(--ink3);border-style:dashed;cursor:default}
 .qc-send[aria-disabled="true"]{cursor:default}
+/* hover only where a pointer can hover, so a tap never leaves an option looking lit */
+@media (hover:hover){
+  .qc-opt:hover:not(:disabled):not([aria-disabled="true"]):not([aria-pressed="true"]){background:var(--panel2);border-color:var(--ink2)}
+  .qc-opt[aria-pressed="true"]:hover:not(:disabled):not([aria-disabled="true"]){filter:brightness(1.08)}
+  .qc-send:hover:not(:disabled):not([aria-disabled="true"]),.qc-change:hover:not(:disabled){background:var(--panel2);border-color:var(--ink2)}
+}
 .qc-keep{align-self:flex-start}
 .qc-done{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .qc-pick{display:flex;align-items:center;gap:10px;max-width:100%;background:var(--sig);color:var(--on-sig);padding:9px 12px 8px 10px;font:800 18px/1.1 var(--f-display);letter-spacing:.07em;text-transform:uppercase;overflow-wrap:anywhere}
@@ -412,6 +423,9 @@ dialog.lens::backdrop{background:var(--scrim)}
 .app[data-view="map"] .listview-empty{display:none}
 
 .app[data-phase="empty"] .nowblock,.app[data-phase="nodb"] .nowblock{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);padding:0;white-space:nowrap}
+/* a question filed in a round with no stations is still asked: the headline block or the readout comes back to carry it */
+.app[data-phase="empty"] .nowblock.has-q{position:static;width:auto;height:auto;overflow:visible;clip-path:none;padding:18px 16px 4px;white-space:normal}
+.app[data-phase="empty"] #rd-q:not([hidden]){display:flex}
 .dial.compact .c-read{display:none}
 .dial.compact .c-kick{font-size:calc(var(--px)*34)}
 .dial.compact .mglyph .gl{stroke:var(--ink3)}
@@ -473,6 +487,7 @@ dialog.lens::backdrop{background:var(--scrim)}
   .app[data-view="map"] .nowblock{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);padding:0;white-space:nowrap}
   .nowblock .sit{display:none}
   .nowblock{padding:18px 28px 0}
+  .app[data-phase="empty"] .nowblock.has-q{padding:18px 28px 0}
   .nowblock h1{font-size:34px;max-width:30ch}
 }
 @media (min-width:1200px) and (min-height:600px) and (max-width:1499px){
@@ -715,7 +730,7 @@ function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 /* ================= state ================= */
 const ST = {
   db: null, phase: 'boot', now: null, lens: null, lensRaw: null,
-  paths: new Map(), signals: [], round: 0, cur: [], earlier: [],
+  paths: new Map(), signals: [], answers: [], ansSig: '', round: 0, cur: [], earlier: [],
   view: 'map', sel: null, opener: null, canWrite: null, busy: false,
   lastWriteAt: 0, loaded: { now: false, paths: false }, pathsSig: '', nowSig: '', lensSig: '', sigSig: '',
   firstRender: true, compact: false, motion: true, copyT: 0, askT: 0, pollMs: 5000, pollT: 0, listSig: '', drSig: ''
@@ -742,8 +757,9 @@ function normNow(d) {
   if (!d) return null;
   const str = (v, m) => typeof v === 'string' ? v.slice(0, m) : '';
   const question = str(d.question, 500).trim();
-  // one question a round: a stable id (falls back to the question text) and up to four one-tap options
-  const qid = typeof d.questionId === 'string' && d.questionId.trim() ? d.questionId.trim().slice(0, 120) : question;
+  // one question a round: a stable id (falls back to the question text) and up to four one-tap options.
+  // The id is used as written (trimmed, never cut), as the mod does, so both answer under the same id.
+  const qid = typeof d.questionId === 'string' && d.questionId.trim() ? d.questionId.trim() : question;
   const opts = Array.isArray(d.questionOptions)
     ? d.questionOptions.filter(x => typeof x === 'string').map(x => x.trim().slice(0, 60).trim()).filter((x, i, a) => x && a.indexOf(x) === i).slice(0, 4)
     : [];
@@ -1411,57 +1427,86 @@ function renderAsk() {
 }
 
 /* ================= the Oracle's question ================= */
-/* One question a round, answered here. A tap on an option sends that answer at once; own words go as a separate answer.
-   The answered state is read back from the signals, so it survives a reload: the latest choice and the latest words for this
-   questionId. One card exists and moves between two hosts, so it is never on screen, in the tab order or read out twice. */
+/* One question a round, answered here. A tap on an option sends that answer at once, together with any words already typed
+   in the field: one answer, the same shape as the mod's "/next b because ...". Send sends the words alone.
+   The answered state is read back from the signals, so it survives a reload: the latest answer for this questionId, whole.
+   An older choice or older words never ride along with a newer answer, so a correction replaces what it corrects.
+   One card exists and moves between two hosts, so it is never on screen, in the tab order or read out twice. */
 const mqConsole = window.matchMedia('(min-width:1200px) and (min-height:600px)');
-const QA = { qid: '', optSig: '', editing: false, sending: '', msg: '', bad: false, local: null };
+const QA = { qid: '', gen: 0, optSig: '', editing: false, sending: '', msg: '', bad: false, local: null, late: null, lost: null, lostAt: 0 };
 const LETTERS = 'ABCD';
+const SEND_WAIT = 12000;   // a write with no reply by then is reported, and the controls come back
 const qc = (() => {
   const q = h('p', { class: 'qc-q', id: 'qc-q', tabindex: '-1' });
   const opts = h('div', { class: 'qc-opts', role: 'group', 'aria-labelledby': 'qc-q' });
   const lab = h('label', { class: 'lbl', for: 'qc-text' });
-  const text = h('textarea', { id: 'qc-text', rows: '1', maxlength: '500', placeholder: 'Type it, Enter sends', autocomplete: 'off' });
+  const text = h('textarea', { id: 'qc-text', rows: '1', maxlength: '500', placeholder: 'Enter sends', autocomplete: 'off', enterkeyhint: 'send', 'aria-describedby': 'qc-hint' });
   const send = h('button', { type: 'button', class: 'qc-send', text: 'Send' });
+  const hint = h('p', { class: 'qc-hint', id: 'qc-hint', hidden: true });
   const keep = h('button', { type: 'button', class: 'link-btn qc-keep', text: 'Keep my answer' });
-  const ask = h('div', { class: 'qc-ask' }, opts, h('div', { class: 'qc-own' }, lab, h('div', { class: 'qc-row' }, text, send)), keep);
+  const ask = h('div', { class: 'qc-ask' }, opts, h('div', { class: 'qc-own' }, lab, h('div', { class: 'qc-row' }, text, send), hint), keep);
   const pick = h('p', { class: 'qc-pick' }), said = h('p', { class: 'qc-said' }), note = h('p', { class: 'qc-note' });
   const change = h('button', { type: 'button', class: 'qc-change', text: 'Change', 'aria-label': 'Change your answer' });
   const done = h('div', { class: 'qc-done' }, h('span', { class: 'lbl', text: 'Your answer' }), pick, said, h('div', { class: 'qc-foot' }, note, change));
   const msg = h('p', { class: 'qc-msg', role: 'status', 'aria-live': 'polite' });
   const el = h('section', { class: 'qcard', 'aria-labelledby': 'qc-h' }, h('h2', { class: 'qc-kick', id: 'qc-h' }, h('span', { class: 'sr', text: 'The Oracle ' }), 'Asks you'), q, ask, done, msg);
-  return { el, q, opts, lab, text, send, keep, ask, pick, said, note, change, done, msg };
+  return { el, q, opts, lab, text, send, hint, keep, ask, pick, said, note, change, done, msg };
 })();
 
+// times compare as instants, not strings, so "…00Z" and "…00.000Z" or an offset written elsewhere sort correctly
+const atMs = s => { const n = Date.parse(s && s.at); return Number.isFinite(n) ? n : -Infinity; };
 function answerFor(qid) {
   if (!qid) return null;
-  const list = ST.signals.filter(s => s.type === 'answer' && s.questionId === qid && (s.choice || s.text));
+  // answers come from the main signals window and from the answers-only subscription; the same doc can be in both
+  const seen = new Set(), list = [];
+  for (const s of ST.answers.concat(ST.signals)) {
+    if (s.type !== 'answer' || s.questionId !== qid || !(s.choice || s.text) || seen.has(s.id)) continue;
+    seen.add(s.id); list.push(s);
+  }
   const L = QA.local;   // the answer just sent, shown until the subscription brings it back
   if (L && L.questionId === qid) { if (list.some(s => s.at === L.at && s.choice === L.choice && s.text === L.text)) QA.local = null; else list.push(L); }
   if (!list.length) return null;
-  list.sort((a, b) => a.at < b.at ? 1 : a.at > b.at ? -1 : 0);
-  const c = list.find(s => s.choice), t = list.find(s => s.text);
-  return { choice: c ? c.choice : '', text: t ? t.text : '', read: list.every(s => s.handled) };
+  // the latest answer wins, whole (contract: the latest answer per questionId wins for display); a tie goes to the one just sent
+  let top = list[0];
+  for (const s of list) { const d = atMs(s) - atMs(top); if (d > 0 || (d === 0 && s === L)) top = s; }
+  return { choice: top.choice, text: top.text, at: top.at, read: top.handled };
 }
 function sizeQText() { const t = qc.text; t.style.height = 'auto'; if (t.scrollHeight) t.style.height = Math.min(96, t.scrollHeight + 2) + 'px'; }
+function renderHint() {
+  const hasOpts = !!(ST.now && ST.now.questionOptions.length), words = qc.text.value.trim();
+  const t = ST.canWrite === false ? ''
+    : (words && hasOpts) ? 'Pick an option to send these words with it, or Send them alone.'
+    : QA.editing && !qc.keep.hidden ? 'A new answer replaces the one you gave.' : '';
+  if (qc.hint.textContent !== t) qc.hint.textContent = t;
+  qc.hint.hidden = !t;
+}
+// the console layout keeps the card in the readout column; a round without stations hides the readout in list view
+function qHost() { return mqConsole.matches && !(ST.phase === 'empty' && ST.view === 'list') ? $('#rd-q') : $('#nb-q'); }
 
 function renderQuestion() {
-  const n = ST.now, nb = $('#nb-q'), rd = $('#rd-q');
-  if (!(ST.phase === 'live' && n && n.question)) { nb.hidden = true; rd.hidden = true; if (qc.el.parentNode) qc.el.remove(); return; }
-  const host = mqConsole.matches ? rd : nb, other = host === rd ? nb : rd;
+  const n = ST.now, nb = $('#nb-q'), rd = $('#rd-q'), nowblock = $('#nowblock');
+  if (!((ST.phase === 'live' || ST.phase === 'empty') && n && n.question)) {
+    nb.hidden = true; rd.hidden = true; nowblock.classList.remove('has-q'); if (qc.el.parentNode) qc.el.remove(); return;
+  }
+  const host = qHost(), other = host === rd ? nb : rd;
+  host.hidden = false; other.hidden = true;
+  nowblock.classList.toggle('has-q', host === nb && ST.phase === 'empty');
   if (qc.el.parentNode !== host) {
-    const f = qc.el.contains(document.activeElement) ? document.activeElement : null;
+    // the old host may already have been restyled away, which drops focus to the body: take it back if it left the card just now
+    const a = document.activeElement, adrift = !a || a === document.body;
+    const f = qc.el.contains(a) ? a : (adrift && QA.lost && qc.el.contains(QA.lost) && performance.now() - QA.lostAt < 1500 ? QA.lost : null);
     host.append(qc.el);
     if (f) { try { f.focus({ preventScroll: true }); } catch (e) {} }
   }
-  host.hidden = false; other.hidden = true;
-  if (n.questionId !== QA.qid) { QA.qid = n.questionId; QA.editing = false; QA.sending = ''; QA.msg = ''; QA.bad = false; QA.local = null; qc.text.value = ''; sizeQText(); }
+  const fresh = n.questionId !== QA.qid, focusIn = qc.el.contains(document.activeElement);
+  if (fresh) { QA.qid = n.questionId; QA.gen++; QA.editing = false; QA.sending = ''; QA.msg = ''; QA.bad = false; QA.local = null; QA.late = null; qc.text.value = ''; sizeQText(); }
   qc.q.textContent = n.question;
+  qc.el.dataset.qlen = n.question.length > 150 ? 'l' : n.question.length > 100 ? 'm' : 's';
   const opts = n.questionOptions, osig = JSON.stringify(opts);
   if (osig !== QA.optSig) {
     QA.optSig = osig;
     qc.opts.replaceChildren(...opts.map((o, i) => {
-      const b = h('button', { type: 'button', class: 'qc-opt', 'aria-pressed': 'false' }, h('span', { class: 'qc-k', 'aria-hidden': 'true', text: LETTERS[i] }), h('span', { text: o }));
+      const b = h('button', { type: 'button', class: 'qc-opt' }, h('span', { class: 'qc-k', 'aria-hidden': 'true', text: LETTERS[i] }), h('span', { text: o }));
       b.dataset.choice = o;
       b.addEventListener('click', () => sendAnswer('choice', o));
       return b;
@@ -1470,6 +1515,9 @@ function renderQuestion() {
   qc.opts.hidden = !opts.length;
   qc.lab.textContent = opts.length ? 'Or in your own words' : 'Answer in your own words';
   const ans = answerFor(QA.qid), ro = ST.canWrite === false, busy = !!QA.sending;
+  // a write that timed out but landed after all: the warning has done its job
+  const Lt = QA.late;
+  if (Lt && ans && ans.at === Lt.at && ans.choice === Lt.choice && ans.text === Lt.text) { QA.late = null; if (!busy) { QA.msg = ''; QA.bad = false; } }
   const showDone = !!ans && !QA.editing;
   qc.done.hidden = !showDone; qc.ask.hidden = showDone; qc.keep.hidden = !(ans && QA.editing);
   if (ans) {
@@ -1477,20 +1525,29 @@ function renderQuestion() {
     qc.pick.replaceChildren(...(i >= 0 ? [h('span', { class: 'qc-k', 'aria-hidden': 'true', text: LETTERS[i] })] : []), h('span', { text: ans.choice }));
     qc.pick.hidden = !ans.choice;
     qc.said.textContent = ans.text; qc.said.hidden = !ans.text;
-    qc.note.textContent = ans.read ? 'The council has read it.' : 'Queued. The next council reads it.';
+    qc.note.textContent = ans.read ? 'The council has read it.' : 'Queued for the next council.';
   }
   const lock = el => { if (busy) el.setAttribute('aria-disabled', 'true'); else el.removeAttribute('aria-disabled'); };
+  // pressed state only once there is a chosen option to report; before that each option is a plain button that sends
+  const chosen = !!ans && opts.includes(ans.choice);
   for (const b of qc.opts.children) {
-    b.setAttribute('aria-pressed', ans && ans.choice === b.dataset.choice ? 'true' : 'false');
+    if (chosen) b.setAttribute('aria-pressed', ans.choice === b.dataset.choice ? 'true' : 'false'); else b.removeAttribute('aria-pressed');
     b.disabled = ro; lock(b);
     b.classList.toggle('sending', QA.sending === 'choice:' + b.dataset.choice);
   }
   qc.text.disabled = ro; qc.text.readOnly = busy;
-  qc.send.disabled = ro; lock(qc.send); qc.send.textContent = QA.sending === 'text' ? 'Sending' : 'Send';
+  qc.send.disabled = ro; lock(qc.send); qc.send.classList.toggle('sending', QA.sending === 'text'); qc.send.textContent = QA.sending === 'text' ? 'Sending' : 'Send';
   qc.change.disabled = ro; qc.keep.disabled = busy;
+  renderHint();
   const m = ro ? (QA.msg || 'Read-only view. You can read the question, not answer it.') : QA.msg;
   if (qc.msg.textContent !== m) qc.msg.textContent = m;
   qc.msg.classList.toggle('bad', QA.bad);
+  if (fresh && !ST.firstRender) {
+    // a new question arrived while the page was open: say so, after any station news, and keep focus from falling to the body
+    const said = n.question;
+    setTimeout(() => { if (ST.now && ST.now.question === said) announce('The Oracle asks: ' + trunc(said, 200)); }, 900);
+    if (focusIn) { try { qc.q.focus({ preventScroll: true }); } catch (e) {} }
+  }
 }
 
 async function sendAnswer(kind, raw) {
@@ -1498,35 +1555,49 @@ async function sendAnswer(kind, raw) {
   if (!n || !n.question || n.questionId !== QA.qid || QA.sending) return;
   if (ST.canWrite === false) { renderQuestion(); return; }
   if (!ST.db) { QA.msg = 'No line to the archive. Open this page from claude.ai.'; QA.bad = true; renderQuestion(); return; }
-  const val = kind === 'text' ? String(raw || '').trim().slice(0, 500) : String(raw || '');
-  if (!val) { qc.text.focus(); return; }
+  // a tap carries the words already in the field; Send carries the words alone
+  const choice = kind === 'choice' ? String(raw || '') : '';
+  const words = String(kind === 'text' ? raw || '' : qc.text.value).trim().slice(0, 500);
+  if (!choice && !words) { qc.text.focus(); return; }
   const cur = answerFor(QA.qid);
-  if (cur && (kind === 'choice' ? cur.choice === val : cur.text === val)) {   // nothing new to say: close the editor, write nothing
-    QA.editing = false; QA.msg = ''; QA.bad = false; if (kind === 'text') { qc.text.value = ''; sizeQText(); }
+  if (cur && cur.choice === choice && cur.text === words) {   // the same answer again: close the editor, write nothing
+    QA.editing = false; QA.msg = ''; QA.bad = false; qc.text.value = ''; sizeQText();
     renderQuestion(); try { qc.change.focus({ preventScroll: true }); } catch (e) {}
     return;
   }
-  // the exact answer shape the council reads: one of choice or text per answer
+  // the exact answer shape the council reads; choice and text each left out when there is none
   const sig = { type: 'answer', questionId: QA.qid, question: n.question.slice(0, 200) };
-  if (kind === 'choice') sig.choice = val; else sig.text = val;
-  sig.at = new Date().toISOString(); sig.handled = false;
-  const hadFocus = qc.el.contains(document.activeElement);
-  QA.sending = kind === 'choice' ? 'choice:' + val : 'text'; QA.msg = 'Sending to the council…'; QA.bad = false;
+  if (choice) sig.choice = choice;
+  if (words) sig.text = words;
+  // never earlier than the answer it replaces, even if that one came from a device whose clock runs ahead:
+  // the page and the council both take the latest `at`, so a fresh answer must sort last to count
+  sig.at = new Date(Math.min(8.64e15, Math.max(Date.now(), cur ? atMs(cur) + 1 : 0))).toISOString(); sig.handled = false;
+  const hadFocus = qc.el.contains(document.activeElement), gen = QA.gen;
+  QA.sending = choice ? 'choice:' + choice : 'text'; QA.msg = 'Sending to the council…'; QA.bad = false; QA.late = null;
   renderQuestion();
+  let timer = 0;
   try {
     ST.lastWriteAt = Date.now();
-    await ST.db.collection('signals').add(sig);
+    await Promise.race([
+      ST.db.collection('signals').add(sig),
+      new Promise((_, no) => { timer = setTimeout(() => no({ code: 'timeout' }), SEND_WAIT); })
+    ]);
+    clearTimeout(timer);
     ST.lastWriteAt = Date.now();
-    QA.local = { id: '', type: 'answer', pathId: '', questionId: sig.questionId, choice: sig.choice || '', text: sig.text || '', at: sig.at, handled: false };
+    if (gen !== QA.gen) return;   // the question changed while this was in flight; the card already moved on
+    QA.local = { id: '', type: 'answer', pathId: '', questionId: sig.questionId, choice, text: words, at: sig.at, handled: false };
     QA.sending = ''; QA.editing = false; QA.msg = ''; QA.bad = false;
-    if (kind === 'text') { qc.text.value = ''; sizeQText(); }
+    qc.text.value = ''; sizeQText();
     renderQuestion();
-    announce('Answer sent: ' + trunc(val, 90) + '. The next council reads it.');
+    announce('Answer sent: ' + trunc(choice || words, 90) + (choice && words ? ', with your words' : '') + '. Queued for the next council.');
     if (hadFocus) { try { qc.change.focus({ preventScroll: true }); } catch (e) {} }
   } catch (e) {
+    clearTimeout(timer);
+    if (gen !== QA.gen) return;
     QA.sending = ''; QA.bad = true;
     // a well-formed write refused with invalid_argument means this viewer cannot write: read-only for the rest of the visit
     if (e && e.code === 'invalid_argument') { ST.canWrite = false; QA.msg = 'Read-only view. Your answer was not saved.'; }
+    else if (e && e.code === 'timeout') { QA.late = { at: sig.at, choice, text: words }; QA.msg = 'No reply from the archive yet. If your answer does not show here soon, send it again.'; }
     else QA.msg = 'Your answer did not go out. Check the line and try again.';
     renderQuestion(); changed();
     if (hadFocus && ST.canWrite === false) { try { qc.q.focus({ preventScroll: true }); } catch (x) {} }
@@ -1534,10 +1605,12 @@ async function sendAnswer(kind, raw) {
 }
 qc.send.addEventListener('click', () => sendAnswer('text', qc.text.value));
 qc.text.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendAnswer('text', qc.text.value); } });
-qc.text.addEventListener('input', sizeQText);
+qc.text.addEventListener('input', () => { sizeQText(); renderHint(); });
 qc.change.addEventListener('click', () => {
   const a = answerFor(QA.qid); if (!a || ST.canWrite === false) return;
-  QA.editing = true; QA.msg = ''; QA.bad = false; qc.text.value = a.text || '';
+  // with options the editor opens clean (the current choice shows pressed; old words left in the field would ride along with
+  // the next tap); a words-only question opens with the words to edit. Either way, what is sent next replaces the whole answer
+  QA.editing = true; QA.msg = ''; QA.bad = false; qc.text.value = ST.now && !ST.now.questionOptions.length ? a.text || '' : '';
   renderQuestion(); sizeQText();
   const f = qc.opts.querySelector('[aria-pressed="true"]') || qc.opts.querySelector('button') || qc.text;
   try { f.focus({ preventScroll: true }); } catch (e) {}
@@ -1547,6 +1620,11 @@ qc.keep.addEventListener('click', () => {
   renderQuestion(); try { qc.change.focus({ preventScroll: true }); } catch (e) {}
 });
 qc.el.addEventListener('keydown', e => { if (e.key === 'Escape' && QA.editing && !QA.sending && !qc.keep.hidden) { e.preventDefault(); e.stopPropagation(); qc.keep.click(); } });
+// focus that leaves the card for nowhere (its host just went display:none on a resize) is remembered for a moment
+qc.el.addEventListener('focusout', e => { if (!e.relatedTarget) { QA.lost = e.target; QA.lostAt = performance.now(); } });
+// move the card on resize as well as on the media query change, whichever comes first
+const qMisplaced = () => !!qc.el.parentNode && qc.el.parentNode !== qHost();
+window.addEventListener('resize', () => { if (qMisplaced()) renderQuestion(); });
 mqConsole.addEventListener('change', () => renderQuestion());
 
 /* ================= lens ================= */
@@ -1574,6 +1652,7 @@ function setView(v, persist) {
   if (persist) lsSet('field.view', v);
   if (v === 'list') { hoverId = null; tip.hidden = true; }
   sizeDial();
+  if (qMisplaced()) renderQuestion();   // in a round without stations the view decides where the question sits
 }
 $('#v-map').addEventListener('click', () => setView('map', true));
 $('#v-list').addEventListener('click', () => setView('list', true));
@@ -1644,11 +1723,21 @@ function applyLens(snap) {
   if (sig === ST.lensSig) return false;
   ST.lensSig = sig; ST.lens = l; if (lensDlg.open) renderLens(); return true;
 }
+function parseSignal(d) {
+  const x = d.data() || {};
+  return { id: d.id, type: String(x.type || ''), pathId: typeof x.pathId === 'string' ? x.pathId : '', questionId: typeof x.questionId === 'string' ? x.questionId : '', choice: typeof x.choice === 'string' ? x.choice : '', text: typeof x.text === 'string' ? x.text : '', at: typeof x.at === 'string' ? x.at : '', handled: x.handled === true };
+}
 function applySignals(docs) {
-  const list = docs.map(d => { const x = d.data() || {}; return { id: d.id, type: String(x.type || ''), pathId: typeof x.pathId === 'string' ? x.pathId : '', questionId: typeof x.questionId === 'string' ? x.questionId : '', choice: typeof x.choice === 'string' ? x.choice : '', text: typeof x.text === 'string' ? x.text : '', at: typeof x.at === 'string' ? x.at : '', handled: x.handled === true }; });
+  const list = docs.map(parseSignal);
   const sig = JSON.stringify(list);
   if (sig === ST.sigSig) return false;
   ST.sigSig = sig; ST.signals = list; ST.askT = 0; return true;
+}
+function applyAnswers(docs) {
+  const list = docs.map(parseSignal).filter(s => s.type === 'answer');
+  const sig = JSON.stringify(list);
+  if (sig === ST.ansSig) return false;
+  ST.ansSig = sig; ST.answers = list; return true;
 }
 function stamp() { const t = new Date(); $('#sync-t').textContent = 'Live'; $('#sync').title = 'Last sync ' + two(t.getHours()) + ':' + two(t.getMinutes()) + ':' + two(t.getSeconds()); }
 
@@ -1658,6 +1747,8 @@ function subscribe() {
   db.doc('meta/lens').onSnapshot(s => { if (applyLens(s)) changed(); }, onErr);
   db.collection('paths').onSnapshot(s => { if (s.metadata.fromCache && s.empty) return; stamp(); if (applyPaths(s.docs)) changed(); }, onErr);
   db.collection('signals').orderBy('at', 'desc').limit(80).onSnapshot(s => { if (applySignals(s.docs)) changed(); }, onErr);
+  // answers get their own small window, so a busy run of taps and asks never pushes the answered state out of the 80 above
+  try { db.collection('signals').where('type', '==', 'answer').orderBy('at', 'desc').limit(40).onSnapshot(s => { if (applyAnswers(s.docs)) changed(); }, onErr); } catch (e) {}
   // a definitive empty answer may never arrive from cache, so stop waiting after a moment
   setTimeout(() => { let c = false; if (!ST.loaded.paths) { ST.loaded.paths = true; c = true; } if (!ST.loaded.now) { ST.loaded.now = true; c = true; } if (c) changed(); }, 3500);
 }

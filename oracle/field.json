@@ -1,9 +1,9 @@
 {
   "now": {
-    "headline": "Money gets one seat. The other five are for making something strange.",
-    "situation": "Floating, pivoting back to making money via art. Shopify shows 0 orders and $0 ever (17 products, 228 sessions in 90 days, 5 carts started, none finished); $2,265 of signed prints sit in archived listings; real sales may live on pay.the37thmove.com. Round 2 re-judges round 1's 24 candidates under a new rule: one path floats around money, five are free of it.",
-    "round": 2,
-    "convenedAt": "2026-10-08T17:10:00Z",
+    "headline": "Shopify's zero is the wrong scoreboard: you sold by hand. The days are back; spend them on work that answers back.",
+    "situation": "You are back in the studio after a long pause, and most days are yours again. Before the pause the work sold well, by hand: paid directly or, likely, through the pay page. Shopify shows 0 orders ever and 5 checkouts that died unpaid. The store records none of your past buyers; who bought what, and who has heard from you since, lives with you. No original is for sale in the store. The painting just finished is spoken for and stays out of this.",
+    "round": 3,
+    "convenedAt": "2026-10-08T19:40:00Z",
     "council": [
       "collider",
       "inverter",
@@ -13,268 +13,427 @@
       "scout"
     ],
     "trigger": "asked",
-    "question": "Is there a painting on an easel right now, and has anyone ever paid you for one? Stop Me depends on both and I can see neither."
+    "question": "Without digging, how many past buyers of your paintings or commissions could you still reach?",
+    "questionId": "r3-buyer-reach",
+    "questionOptions": [
+      "None",
+      "One or two",
+      "Three or more"
+    ]
   },
   "paths": [
     {
-      "id": "stop-me",
-      "title": "Stop Me: the buyer decides when it's done",
-      "why": "Price climbs as the painting gets made; whoever buys freezes it as found. One real sale, no traffic needed.",
-      "firstMove": "In tabula-rosetta, on a new branch work/stop-me, build work/stop-me/index.html, one self-contained page: a photo slot for the canvas, four stages (ground 370, underpainting 740, halfway 1110, resolved 1480 USD), a live price that only moves up, a Buy placeholder. Write work/stop-me/RULES.md: a purchase ends the painting that day, signed as found, shipped with a studio card naming the stage; no stage sells before its photo exists. Publish nothing. Then draft, for my approval, the Shopify product 'Stop Me, Painting No. 1' and a note to past collectors.",
-      "mode": "inversion",
-      "ring": 1,
-      "reachDays": 6,
-      "surprise": 4,
-      "money": 3,
-      "fuel": [
-        "ledger",
-        "worlds",
-        "toolbox"
-      ],
-      "tools": [
-        "Shopify",
-        "GitHub"
-      ],
-      "sources": [],
-      "spends": "Shopify draft asks first",
-      "isWildcard": false,
-      "isMoney": true,
-      "doubt": "One sale proves one buyer, not a market. It needs a painting actually in progress and someone who already wants to own it, and I can see neither.",
-      "status": "open",
-      "round": 2,
-      "createdAt": "2026-10-08T17:10:00Z"
-    },
-    {
-      "id": "dreamachine-sigil",
-      "title": "Dreamachine sigil: symmetry order is the Hz",
-      "why": "A sigil cut into a spinning card cylinder; its fold symmetry sets the flicker rate. A perception tool you build in an afternoon.",
-      "firstMove": "In tabula-rosetta create studio/dreamachine/make_template.py (no deploys, no store writes). Output print-ready SVG and PDF for a card cylinder: an A4-landscape strip (29.7 cm, glue tab included), about 9.3 cm across, with N identical sigil cutouts evenly spaced. At 78 rpm the flicker is N x 1.3 Hz, so emit N = 7, 8 and 9 (9.1, 10.4, 11.7 Hz). Draw the sigil in straight strokes on a hex lattice so it cuts clean. Print the Hz table and a photosensitive-epilepsy warning on the sheet. Bench test: 78 rpm turntable, small LED inside, eyes closed.",
-      "mode": "collision",
-      "ring": 1,
-      "reachDays": 5,
-      "surprise": 4,
-      "money": 1,
-      "fuel": [
-        "worlds",
-        "outside"
-      ],
-      "tools": [
-        "Python"
-      ],
-      "sources": [
-        {
-          "label": "Gysin and Sommerville, Dreamachine (ZKM) (not opened)",
-          "url": "https://zkm.de/en/node/8153"
-        }
-      ],
-      "spends": "turntable and a lamp, about $20",
-      "isWildcard": false,
-      "isMoney": false,
-      "doubt": "Flicker at 8 to 13 Hz can trigger seizures in photosensitive people. The warning is a floor, not a fix, and I cannot tell you how it feels: you have to spin one.",
-      "status": "open",
-      "round": 2,
-      "createdAt": "2026-10-08T17:10:00Z"
-    },
-    {
-      "id": "dead-site-funerals",
-      "title": "Funerals for dead websites",
-      "why": "Software has no funerals. Sell an epitaph, a sigil seal and a tombstone for dead projects. Your own Vercel graveyard is the demo.",
-      "firstMove": "In tabula-rosetta create studio/necropolis/index.html, one file, no deploy. Read docs/DEPLOY.md and make one tombstone each for project-f8yrf, workspace (whose whole content is the word probe), vite-react, playground2.55, tonic-quantum-leap, and one family stone for the-37-th-move 1.4 to 1.8. Each stone: name, last-deploy date, one dry cause of death, and a seal: the name's letters on a 37-node hex lattice drawn as one stroke. Exclude kurts-* and anything marked keep. Delete and archive nothing. Add a Bury yours link to pay.the37thmove.com.",
+      "id": "pendants",
+      "title": "Pendants: paint the answer to a work that sold",
+      "why": "A new painting made to answer one already on a buyer's wall: exactly one person can want it, and they have said yes to you once.",
+      "firstMove": "Money path. You name one sold work you remember well and whose keeper you can still reach: title and size in chat, no names. Paint first: a small study of its answer, with one move (mirror it, invert it, or carry its composition across the gap). On a local branch work/pendants, unpushed because the repo is public, Claude writes specs.md: composition and size only, nothing about anyone's home. Then a first-refusal note drafted in chat with [keeper] and [price] blank: deposit before the full painting, no discount. Nothing sends; works.ts is read only on your yes.",
       "mode": "collision",
       "ring": 1,
       "reachDays": 4,
-      "surprise": 5,
-      "money": 1,
+      "surprise": 2,
+      "money": 2,
       "fuel": [
-        "worlds",
-        "toolbox"
+        "ledger: 0 Shopify orders ever; sales happened off the store",
+        "ledger: paintings and commissions sold before the pause, per your own account",
+        "outside: pendant portraits",
+        "worlds: recursion (a work answered by its twin)"
       ],
       "tools": [
-        "GitHub",
-        "Vercel"
+        "Your paint and a small panel",
+        "GitHub (local branch, unpushed)",
+        "pay.the37thmove.com (existing links, only on a yes)"
       ],
-      "sources": [],
-      "spends": "deploy asks first",
+      "sources": [
+        {
+          "label": "Rembrandt's pendant portraits of Soolmans and Coppit, bought jointly by the Louvre and Rijksmuseum (not opened)",
+          "url": "https://en.wikipedia.org/wiki/Portraits_of_Maerten_Soolmans_and_Oopjen_Coppit"
+        }
+      ],
+      "spends": "a study panel; the note and any deposit ask first",
       "isWildcard": false,
-      "isMoney": false,
-      "doubt": "Funny for an afternoon. Whether anyone would pay to bury a project is untested, and the list of dead projects comes from a doc that may be out of date.",
+      "isMoney": true,
+      "doubt": "Assumes you recall who owns what and can still reach them. An 'answer' can say theirs was unfinished; Rembrandt's pair was made at once, not added later. One yes is weeks of paint.",
       "status": "open",
-      "round": 2,
-      "createdAt": "2026-10-08T17:10:00Z"
+      "round": 3,
+      "createdAt": "2026-10-08T19:40:00Z"
     },
     {
-      "id": "sigil-gun-sticker",
-      "title": "Sigil Gun becomes an actual gun",
-      "why": "A handheld that prints a sigil sticker from any typed wish. The print line becomes a tool, and the glyph becomes a verb.",
-      "firstMove": "In tabula-rosetta, build work/sigil-gun-label/index.html: type a wish, collapse its letters into one angular illegible glyph (Spare's method, no mandala), render it 1-bit at 384px wide for a 48mm thermal sticker at 203dpi. Save PNGs. If you own or buy a mini thermal sticker printer (Phomemo-class, roughly $30 to $80), print 10, stick them up and photograph the results. Borrow glyph code from the 137-cipher Vercel project if useful. No store writes, no deploys.",
+      "id": "rods-finish-it",
+      "title": "A painting your rods finish in the dark",
+      "why": "Two greys that match by day, one mixed from reds, one from blue-greens, part when the rods take over. Hide a sigil in that pair.",
+      "firstMove": "Paint first. Mix 12 pairs: each one target grey or muted colour made two ways, once leaning on reds and oranges, once on blue-greens, matched by eye at noon. View them under one dimmable LED that is not dim-to-warm (those and dimmed halogen redden and fight the shift) at full, then after 15 and 30 minutes dim, gaze off-centre, and once at civil dusk. Mark which pairs part. Claude writes sketches/purkinje/card.svg (numbered grid) and PROTOCOL.md; no spectral maths, your eye is the meter. Then mask.svg: one big blunt sigil for the pair that parts hardest, set in a busy field.",
       "mode": "escalation",
-      "ring": 1,
-      "reachDays": 3,
-      "surprise": 4,
+      "ring": 2,
+      "reachDays": 5,
+      "surprise": 3,
       "money": 1,
       "fuel": [
-        "worlds",
-        "toolbox"
+        "worlds: darkness as a generative force",
+        "worlds: perception shifts",
+        "outside: the Purkinje shift and rod-cone metamers",
+        "outside: the scout's dusk-sigil test card, folded in"
       ],
       "tools": [
+        "Your tube paints",
+        "One dimmable LED lamp",
         "GitHub"
       ],
       "sources": [
         {
-          "label": "Spare's sigil method (not opened)",
-          "url": "https://en.wikipedia.org/wiki/Sigil_(magic)"
+          "label": "CIE scotopic luminous efficiency V'(lambda) data table (not opened)",
+          "url": "https://cie.co.at/datatable/cie-spectral-luminous-efficiency-scotopic-vision"
+        },
+        {
+          "label": "Arpa et al., Purkinje Images, Computer Graphics Forum 2015 (not opened)",
+          "url": "https://diglib.eg.org/handle/10.1111/cgf12463"
+        },
+        {
+          "label": "IOP Spark: the Purkinje effect and Purkinje images (not opened)",
+          "url": "https://spark.iop.org/purkinje-effect-and-purkinje-images"
+        },
+        {
+          "label": "Phillips Collection blog: Bonnard and the Purkinje shift (not opened)",
+          "url": "https://blog.phillipscollection.org/tag/vision/"
         }
       ],
-      "spends": "printer $30 to $80, optional",
+      "spends": "a dimmable LED lamp if you lack one; ask first",
       "isWildcard": false,
       "isMoney": false,
-      "doubt": "Everything rides on the glyph generator being good; a bad one is a toy. Do the screen version first and buy the printer only if the glyphs earn it.",
+      "doubt": "Dim light leaves the eye mesopic: a slow re-ranking, not a flip, read off-centre in big shapes. Hand-mixed matches rarely hold, so by day the sigil may ghost. Turrell owns the wait.",
       "status": "open",
-      "round": 2,
-      "createdAt": "2026-10-08T17:10:00Z"
+      "round": 3,
+      "createdAt": "2026-10-08T19:40:00Z"
     },
     {
-      "id": "stargate-sigils",
-      "title": "Strike the Stargate files into sigils",
-      "why": "Declassified remote-viewing files redacted to one surviving sentence, struck into a glyph. Zine plus prints from a public-domain source.",
-      "firstMove": "Download one declassified Star Gate remote-viewing session PDF yourself from the CIA reading room (this sandbox cannot reach cia.gov) into work/stargate/source.pdf. Call adobe_mandatory_init, run pdf_ocr then pdf_to_markdown. Write one intent sentence; those words survive. Redact every other word with pdf_page_organize (permanent, so on a copy). Apply Spare's letter-strike to the survivors for the glyph. Finish with pdf_to_image previews for a 12-page zine. Stop at previews: no store writes.",
+      "id": "solargraph-turn",
+      "title": "Let the sun draw the turn of the year",
+      "why": "Thirteen pinhole cans at the studio's thresholds, opened one by one across the solstice: waiting is the exposure, and the turn lands midway.",
+      "firstMove": "Claude writes studio/solargraph/: sun_arc.py takes a latitude you type at run time (never committed) and the way each threshold faces, and flags which doors, windows and edges see the low winter sun. PLAN.md: 13 cans (330 ml, ~0.25 mm needle pinhole, B&W RC paper loaded in the dark, silica gel). One test can opens after 7 days, the other twelve about every 12 days to the March equinox, so the turn appears partway through the series. One can gets a ~2 mm sigil cut in foil as its aperture (speculation). Scan once, unfixed, then invert. Price supplies; buy nothing.",
+      "mode": "inversion",
+      "ring": 2,
+      "reachDays": 8,
+      "surprise": 3,
+      "money": 1,
+      "fuel": [
+        "worlds: thresholds and waiting, at a distance",
+        "worlds: sigils (one used as the aperture)",
+        "outside: solargraphy"
+      ],
+      "tools": [
+        "Python",
+        "GitHub",
+        "pinhole cans and RC paper"
+      ],
+      "sources": [
+        {
+          "label": "Aalto University, Tarja Trygg's solargraphy (not opened)",
+          "url": "https://www.aalto.fi/news/international-exhibition-features-aalto-researchers-solargraphy-photos"
+        },
+        {
+          "label": "Jon Grepstad, solargraphs (not opened)",
+          "url": "https://jongrepstad.com/solargraphs"
+        },
+        {
+          "label": "Time in a Can: pinhole solargraphy (not opened)",
+          "url": "https://builditsolar.com/Projects/Educational/Solargraphy/Solargraphy.htm"
+        }
+      ],
+      "spends": "cans, paper, silica gel: about $30-40, my estimate",
+      "isWildcard": false,
+      "isMoney": false,
+      "doubt": "After the solstice the arcs retrace the same band, so most later cans just darken: the turn reads as change stopping, not reversing. Cans fog, and north thresholds record nothing.",
+      "status": "open",
+      "round": 3,
+      "createdAt": "2026-10-08T19:40:00Z"
+    },
+    {
+      "id": "no-such-number",
+      "title": "No Such Number: the post office signs the sigil",
+      "why": "Seven sigils mailed to house numbers that don't exist on real mythic streets come back stamped by the system. The sealed return is the work.",
+      "firstMove": "On local branch work/no-such-number, never pushed (the repo is public), Claude writes make_sigils.py and hands it to you as a file: 7 one-stroke A6 sigils from intent phrases you type at run time on your machine (never saved or pasted here). ADDRESSES.md: 7 real streets with mythic names (Oracle Rd, Temple St), each with a house number likely past the last, marked UNCHECKED until you confirm it invalid in the USPS ZIP Code lookup; drop any that proves valid. Your return address goes on by hand, never in the repo; what comes back stays sealed for good. Check today's postage. Mail nothing.",
       "mode": "wrongtool",
-      "ring": 1,
-      "reachDays": 5,
-      "surprise": 4,
-      "money": 1,
+      "ring": 2,
+      "reachDays": 12,
+      "surprise": 3,
+      "money": 0,
       "fuel": [
-        "worlds",
-        "outside",
-        "toolbox"
+        "worlds: sigils (made, then let go)",
+        "worlds: return, at a distance",
+        "outside: undeliverable-mail handling"
       ],
       "tools": [
-        "Adobe for creativity"
+        "Python",
+        "USPS ZIP Code Lookup (by hand)",
+        "GitHub (local branch, unpushed)"
       ],
       "sources": [
         {
-          "label": "CIA reading room, Stargate (not opened)",
-          "url": "https://www.cia.gov/readingroom/search/site/stargate"
+          "label": "USPS FAQ: What is the Mail Recovery Center (not opened)",
+          "url": "https://faq.usps.com/articles/Knowledge/What-is-the-USPS-Mail-Recovery-Center"
         },
         {
-          "label": "Spare's sigil method (not opened)",
-          "url": "https://en.wikipedia.org/wiki/Sigil_(magic)"
+          "label": "Mental Floss: what happens to undeliverable mail (not opened)",
+          "url": "https://www.mentalfloss.com/culture/public-services/what-happens-to-undeliverable-mail"
+        },
+        {
+          "label": "Slashdot/Vice: Post Office auctions undeliverable mail in lots (not opened)",
+          "url": "https://news.slashdot.org/story/22/01/11/180227/post-office-auctions-8-million-worth-of-mail-annually-has-no-idea-what-its-selling"
         }
       ],
-      "spends": "Adobe usage on your plan",
+      "spends": "postage for 7 letters; mailing needs your yes",
       "isWildcard": false,
       "isMoney": false,
-      "doubt": "Redaction art has a long lineage; the sigil strike is the new part. I have not tested whether the Adobe tools cope with a scanned 40-page file, and you must download the PDF yourself.",
+      "doubt": "If a guessed number is real, a stranger opens your sigil. The endorsement may be a printed yellow sticker, not a hand (unverified), and some may vanish. Returned mail is well-worn mail art.",
       "status": "open",
-      "round": 2,
-      "createdAt": "2026-10-08T17:10:00Z"
+      "round": 3,
+      "createdAt": "2026-10-08T19:40:00Z"
     },
     {
-      "id": "channel-37-dome",
-      "title": "Channel 37: a dome show on the dark frequency",
-      "why": "US TV channel 37 has reportedly been kept dark since 1963 so astronomers can listen. A dome piece on the empty channel, under your number.",
-      "firstMove": "In tabula-rosetta, prototype prototypes/channel-37-dome with Three.js: a Platonic-solid and 4D-projection piece seen through a fisheye dome camera, on a 10-minute timeline that collapses a rotating tesseract to one line while band hiss drifts in and out. Export a 4096px fisheye test frame and a browser dome preview. First, check the channel-37 claim yourself: it is the hook, and I could not open the source.",
-      "mode": "escalation",
-      "ring": 3,
+      "id": "station-in-flight",
+      "title": "A Pink TV station that airs only in flight",
+      "why": "A firewall built to stop attackers becomes an antenna: one station comes in only over airline wifi, between places. On the ground, static.",
+      "firstMove": "Read-only. With Vercel, list the deployed files of studio-x37-television-preview and say whether any station fetches a media file a rule could intercept or makes its sound in the browser (then the gate needs another hook); read get_firewall_config. Research which ASNs in-flight wifi exits through, each with a source, and which also serve homes. Draft studio/range/rule.json (one WAF rule on geo_as_number) and README.md: what airs aloft (one still and one tone you make for it alone, never shown on the ground) and what leaks. Apply nothing.",
+      "mode": "wrongtool",
+      "ring": 2,
       "reachDays": 7,
-      "surprise": 5,
-      "money": 1,
+      "surprise": 4,
+      "money": 0,
       "fuel": [
-        "worlds",
-        "outside"
+        "toolbox: Pink TV stations, Vercel Firewall",
+        "worlds: thresholds (between places)",
+        "worlds: frequency and reception"
       ],
       "tools": [
-        "Three.js viewer"
+        "Vercel (read-only)",
+        "Vercel Firewall (draft rule only)"
       ],
       "sources": [
         {
-          "label": "Channel 37 and radio astronomy (not opened)",
-          "url": "https://www.universetoday.com/articles/the-curious-channel-37-must-see-tv-for-radio-astronomy"
-        },
-        {
-          "label": "FULLDOME OnDemand, producers (not opened)",
-          "url": "https://fulldomeondemand.thespacewriter.com/producers.html"
+          "label": "Vercel WAF rule parameters, incl. geo_as_number, named in the tool schema (not opened)",
+          "url": "https://vercel.com/docs/security/vercel-waf/rule-configuration#parameters"
         }
       ],
-      "spends": "",
+      "spends": "firewall edit and deploy ask first; a test needs a flight",
+      "isWildcard": false,
+      "isMoney": false,
+      "doubt": "Unverified that flight wifi exits through ASNs no ground user shares: Starlink and Viasat serve homes, Private Relay hides the ASN. No station is proven to fetch a file; a test needs a flight.",
+      "status": "open",
+      "round": 3,
+      "createdAt": "2026-10-08T19:40:00Z"
+    },
+    {
+      "id": "moonbounce-sigil",
+      "title": "Bounce a sigil off the Moon, keep the return",
+      "why": "Send a sigil as slow-scan TV, let the Moon eat part of it, and keep only what comes back: a sigil charged by being half lost.",
+      "firstMove": "In tabula-rosetta create work/moonbounce/ (transmit nothing, contact no one). pip install pysstv sstv (missing from this container; untested here). Strike one sigil into a 320x256 PNG, encode it to a Martin M1 WAV, and write simulate.py: Doppler drift, libration smear, deep fading and noise, not a bare delay, which a decoder ignores. Decode with sstv, sweep the damage until the glyph breaks, and keep the last frames that still read. Then draft, unsent, a three-line note asking CAMRAS at Dwingeloo (PI9CAM) whether they bounce images for artists, and at what cost.",
+      "mode": "collision",
+      "ring": 3,
+      "reachDays": 2,
+      "surprise": 3,
+      "money": 1,
+      "fuel": [
+        "worlds: frequency and sound",
+        "worlds: myth-tech",
+        "toolbox: Pink TV as a station",
+        "outside: Earth-Moon-Earth radio"
+      ],
+      "tools": [
+        "Python",
+        "pySSTV (pip install)",
+        "sstv (PyPI decoder, pip install)"
+      ],
+      "sources": [
+        {
+          "label": "Katie Paterson, Earth-Moon-Earth (not opened)",
+          "url": "https://share.katiepaterson.org/wp/?p=277"
+        },
+        {
+          "label": "Makery on Daniela de Paulis, Visual Moonbounce (not opened)",
+          "url": "https://www.makery.info/en/2018/02/06/limage-qui-a-fait-800-000-kilometres-dans-lespace/"
+        },
+        {
+          "label": "ARRL, EME SSTV event at Dwingeloo (not opened)",
+          "url": "https://www.arrl.org/news/eme-sstv-lunar-landing-commemorative-event-set"
+        },
+        {
+          "label": "pySSTV on PyPI, not installed in this container (not opened)",
+          "url": "https://pypi.org/project/PySSTV/"
+        },
+        {
+          "label": "sstv on PyPI, not installed in this container (not opened)",
+          "url": "https://pypi.org/project/sstv/"
+        }
+      ],
+      "spends": "note to CAMRAS asks first; a real bounce needs a ham",
       "isWildcard": true,
       "isMoney": false,
-      "doubt": "The channel-37 fact comes from memory and one unopened search result: verify it before building on it. Dome shows are a slow, niche market, and I do not know your relationship to the number.",
+      "doubt": "Paterson and de Paulis made moonbounce art, de Paulis with images, likely from Dwingeloo: without a reason only you have, it is a cover. Simulated, the Moon is a glitch filter with lore.",
       "status": "open",
-      "round": 2,
-      "createdAt": "2026-10-08T17:10:00Z"
+      "round": 3,
+      "createdAt": "2026-10-08T19:40:00Z"
     }
   ],
   "bench": [
     {
-      "title": "37 Moves: patrons buy a turn, not a print",
+      "title": "Split tallies: the buyers hold the stock",
+      "seer": "ledger",
+      "mode": "wrongtool",
+      "why": "Each past sale becomes a split sigil: the buyer keeps the stock, your wall keeps the foils. The cold list as one ledger you can hang.",
+      "held": "Strongest form in the pool, but a second ask to the money seat's buyers, fed by a list not yet confirmed. Revive if the reach answer is three or more."
+    },
+    {
+      "title": "No-picture station: the phone draws the sigil",
+      "seer": "scout",
+      "mode": "wrongtool",
+      "why": "A sigil that exists only as a screech until a phone hears it; room noise makes every copy different.",
+      "held": "One SSTV path per round and the Moon holds it; Robot36 is Android-only and speaker-to-mic decoding is untested: smear, not a sigil."
+    },
+    {
+      "title": "Give the 137 script code points, like Shavian",
       "seer": "escalator",
       "mode": "escalation",
-      "why": "37 seats at $1,370; each patron buys one irreversible move on a Pink TV board.",
-      "held": "The bigger money bet. Needs 37 buyers you may not have; Stop Me needs one."
+      "why": "A sigil alphabet with code points stops being a font and becomes a resident of the world's text.",
+      "held": "137-cipher is likely a 26-glyph Latin swap and UCSUR an informal list: a private-use font plus a story. The wildcard went to the Moon."
     },
     {
-      "title": "Three Shadows: a tarot spread as one object",
-      "seer": "collider",
-      "mode": "collision",
-      "why": "One 3D object casts Past, Present and Future as three sigil shadows.",
-      "held": "Strong and strange. Held back only because three collisions was too many."
+      "title": "Pink TV airs inside the first minute of sleep",
+      "seer": "escalator",
+      "mode": "escalation",
+      "why": "A channel on the dark behind closed eyes at sleep onset; the dream reports are the footage.",
+      "held": "Dormio's protocol with a worse sensor: a slack hand lets a phone settle, not fall, and the PR #18 tone is in a repo we can't read."
     },
     {
-      "title": "Room portraits: ask the room, get testimony",
+      "title": "A sigil fitted to one buyer's blind spot",
+      "seer": "escalator",
+      "mode": "escalation",
+      "why": "A commission that works for one body only: the sigil vanishes into the buyer's own optic disc.",
+      "held": "Mariotte's 1660s card with a sigil in it; home measuring error is about the spread between people, and eye data is health-adjacent."
+    },
+    {
+      "title": "Hibutsu: a painting sold shut",
+      "seer": "inverter",
+      "mode": "inversion",
+      "why": "A painting in a shut cabinet, opened one night a year, never photographed.",
+      "held": "No original is for sale in the store and no buyer is confirmed in reach; the 12x16 size was invented, and a resale covenant binds no later owner."
+    },
+    {
+      "title": "A station that grows only while you are away",
+      "seer": "inverter",
+      "mode": "inversion",
+      "why": "Watching freezes it, leaving grows it: the site rewards absence.",
+      "held": "Idle-game offline growth in net-art drag; uniform hex subdivision turns to grey mush, and Pink TV traffic has never been measured."
+    },
+    {
+      "title": "Buy a painting back and date it twice",
+      "seer": "ledger",
+      "mode": "inversion",
+      "why": "Pay a past collector 137% for one painting, add one new mark and a second date.",
+      "held": "Spends cash before any comes in; a private buyback sets no market price, and no reachable seller is known. Worth a look after one sale."
+    },
+    {
+      "title": "Signal Restored: a telegram to each past buyer",
+      "seer": "scout",
+      "mode": "inversion",
+      "why": "Past buyers get a dated telegram artwork instead of a newsletter.",
+      "held": "On Kawara's I AM STILL ALIVE in Pink TV type: a quotation, and a second letter to buyers the money seat already reaches."
+    },
+    {
+      "title": "Late papers: a seal for every work already sold",
       "seer": "wrongtool",
       "mode": "wrongtool",
-      "why": "Strangers send room tone; you return audio stems and a printed testimony.",
-      "held": "Round 1's wildcard. Channel 37 fits the brand better; bring this back for stranger."
+      "why": "Each sold work gets its papers late: a hash-chained sigil seal mailed to its keeper.",
+      "held": "Git hashes embed commit times, so seals change on every rerun; strip the hash and it is 'write old buyers I'm back'."
     },
     {
-      "title": "A station on twelve sets only",
-      "seer": "escalator",
-      "mode": "escalation",
-      "why": "Pink TV's rarest station lives on 12 numbered pink receivers.",
-      "held": "Shelved for round 3 as a wildcard; needs about $200 of parts."
+      "title": "Dead air: a station that tunes the viewer first",
+      "seer": "collider",
+      "mode": "collision",
+      "why": "The station airs a dark painting only once the screen finds black and the room goes quiet.",
+      "held": "Dimming until RGB 2 and 4 vanish crushes the shadows a dark painting lives in, and the painting sits in a repo this session can't read."
     },
     {
-      "title": "Rent the dark paintings to cameras",
-      "seer": "scout",
-      "mode": "inversion",
-      "why": "Film and TV rent pre-cleared art at about 15% of retail. A revenue channel that needs no audience.",
-      "held": "Runner-up. The Dopesick figures came from a snippet I could not open."
-    },
-    {
-      "title": "A Haunting, billed monthly",
-      "seer": "escalator",
-      "mode": "escalation",
-      "why": "The console becomes an entity that files a monthly dossier on its owner.",
-      "held": "Recurring revenue, but wants an audience first."
-    },
-    {
-      "title": "A tape that is the only key to the hidden site",
-      "seer": "scout",
+      "title": "Paint in cortex coordinates: log z",
+      "seer": "wrongtool",
       "mode": "wrongtool",
-      "why": "An edition of 137 VHS tapes whose audio unlocks a hidden station.",
-      "held": "Needs a dubbing quote before it is a path."
+      "why": "One painting, two readings: the eye's and V1's complex-log map.",
+      "held": "No painting photo exists to warp, and inverse-mapped lattices render as psytrance tunnels: the banned look by equation."
     },
     {
-      "title": "Nine signed prints, each sale raises the next",
+      "title": "Night shift: nine prints that speak in the dark",
+      "seer": "collider",
+      "mode": "collision",
+      "why": "The archived signed prints get a hand-laid sigil that glows after lights-out.",
+      "held": "Taste killed it: glow powder is off-white, so the sigil hazes by day; it is the gig-poster glow upsell on nine prints nobody has checked."
+    },
+    {
+      "title": "Witch marks for a door, in one endless line",
+      "seer": "collider",
+      "mode": "collision",
+      "why": "A hexafoil routed as one unbroken line with a sigil spliced in: a guarded threshold.",
+      "held": "Taste killed it: the eye sees a daisy wheel, the Seed of Life, and the cast relief is the door plaque it claimed to kill."
+    },
+    {
+      "title": "Write to the paintings, not their owners",
+      "seer": "inverter",
+      "mode": "inversion",
+      "why": "Each sold painting gets a letter, care of its keeper, asking for one photo of it on its wall.",
+      "held": "Taste killed it as a pitch in costume; its best part, a photo of the work on its wall, can ride the Pendants note later."
+    },
+    {
+      "title": "A show where everything is already sold",
       "seer": "ledger",
       "mode": "inversion",
-      "why": "$2,265 of signed prints sit in archived listings while the live variants show 0.",
-      "held": "The stock fact is real and goes in the headline; the rising price is the gimmick."
+      "why": "One night, the paintings that left come home, each with a red dot and no price.",
+      "held": "Taste killed it: red-dot social proof with no sigil or darkness in it, and it needs a room, insurance and owner consent."
     },
     {
-      "title": "Audit the inbox for everyone who ever paid",
-      "seer": "ledger",
+      "title": "Your hex sigils are already chord progressions",
+      "seer": "wrongtool",
       "mode": "wrongtool",
-      "why": "Past payers are the warmest buyers.",
-      "held": "Folded into Stop Me and 37 Moves as their first move."
+      "why": "Lay a 37-node hex on Euler's Tonnetz and every sigil stroke becomes a chord change.",
+      "held": "Taste killed it: a 37-node patch folds onto 12 pitch classes, so strokes collide; a second sigil-to-sound converter in a row."
     },
     {
-      "title": "Channel 37: a dome show on the empty frequency",
+      "title": "Dusk sigil: a painting only twilight decodes",
       "seer": "scout",
+      "mode": "collision",
+      "why": "One canvas, two images: the sigil surfaces as reds die at dusk.",
+      "held": "Merged into the rods path: its dusk check and busy field survive; a luminance match would have left a red sigil plain by day."
+    },
+    {
+      "title": "Dreamachine sigil: symmetry order is the Hz",
+      "seer": "round 2",
+      "mode": "collision",
+      "why": "A sigil cut into a spinning card cylinder; its fold symmetry sets the flicker rate. A perception tool you build in an afternoon.",
+      "held": "Round 2 path, replaced by the fresh round 3 council. Revive if it still pulls."
+    },
+    {
+      "title": "Funerals for dead websites",
+      "seer": "round 2",
+      "mode": "collision",
+      "why": "Software has no funerals. Sell an epitaph, a sigil seal and a tombstone for dead projects. Your own Vercel graveyard is the demo.",
+      "held": "Round 2 path, replaced by the fresh round 3 council. Revive if it still pulls."
+    },
+    {
+      "title": "Sigil Gun becomes an actual gun",
+      "seer": "round 2",
       "mode": "escalation",
-      "why": "US TV channel 37 is kept dark for radio astronomy. A dome show on the dark channel.",
-      "held": "Money 1. The channel-37 fact is the real gift: it is the brand's own number."
+      "why": "A handheld that prints a sigil sticker from any typed wish. The print line becomes a tool, and the glyph becomes a verb.",
+      "held": "Round 2 path, replaced by the fresh round 3 council. Revive if it still pulls."
+    },
+    {
+      "title": "Strike the Stargate files into sigils",
+      "seer": "round 2",
+      "mode": "wrongtool",
+      "why": "Declassified remote-viewing files redacted to one surviving sentence, struck into a glyph. Zine plus prints from a public-domain source.",
+      "held": "Round 2 path, replaced by the fresh round 3 council. Revive if it still pulls."
+    },
+    {
+      "title": "Channel 37: a dome show on the dark frequency",
+      "seer": "round 2",
+      "mode": "escalation",
+      "why": "US TV channel 37 has reportedly been kept dark since 1963 so astronomers can listen. A dome piece on the empty channel, under your number.",
+      "held": "Round 2 path, replaced by the fresh round 3 council. Revive if it still pulls."
     }
   ]
 }

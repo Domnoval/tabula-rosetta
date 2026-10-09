@@ -1,7 +1,7 @@
 {
   "name": "oracle",
-  "version": "0.2.0",
-  "description": "A sentinel for the Oracle: senses forks in the road, nudges when an outside view is worth having, shows the council's latest paths, and convenes the council on demand.",
+  "version": "0.3.0",
+  "description": "A sentinel for the Oracle council: senses forks in the road, nudges once, shows the council's paths above the prompt, and takes one-tap answers to the Oracle's question (/next a-d, /next answer).",
   "author": {
     "name": "domnoval"
   },

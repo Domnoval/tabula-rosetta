@@ -7,7 +7,7 @@
     {
       "name": "oracle",
       "source": "./mods/oracle",
-      "description": "Deals three next moves after every turn: one sharp, one sideways, one past the edge."
+      "description": "A sentinel for the Oracle council: senses forks in the road, nudges once, shows the council's paths above the prompt, and takes one-tap answers to the Oracle's questions."
     }
   ],
   "description": "Mods built in the Tabula Rosetta workspace."

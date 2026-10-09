@@ -3,32 +3,65 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { Field, Nudge, Path } from '../types'
 import {
-  MODES,
-  RINGS,
+  answerFor,
+  answerLabel,
+  answerLine,
+  answersFromInbox,
+  appendLine,
   buildSense,
   digest,
   dollars,
   fit,
+  LETTERS,
+  letterSpan,
   markPicked,
+  MODES,
+  NO_WORDS,
   ordered,
+  parseAnswer,
   parseField,
   parseSense,
   renderField,
+  RINGS,
 } from './lib'
+import type { Answer } from './lib'
 
 const field = atom({ plugin: 'oracle', key: 'field' } as const, null)
 const nudge = atom({ plugin: 'oracle', key: 'nudge' } as const, null)
 const isHidden = atom({ plugin: 'oracle', key: 'isHidden' } as const, false)
 const turns = atom({ plugin: 'oracle', key: 'turns' } as const, 0)
 const quietUntil = atom({ plugin: 'oracle', key: 'quietUntil' } as const, 0)
+const answers = atom({ plugin: 'oracle', key: 'answers' } as const, {})
 
 const FIELD_FILE = 'oracle/field.json'
 const PAGE_FILE = 'oracle/page/URL'
+// Answers given here wait in this file for the next council, which records and empties it.
+const INBOX_FILE = 'oracle/inbox.jsonl'
+
+const NO_QUESTION = 'No question is waiting. The council asks one each round: /next convene.'
 
 // Module scope: a reload starts these over, which is what a reload should do.
 const cfg: { cadence: 'forks' | 'every' | 'ask'; fastModel: string } = { cadence: 'forks', fastModel: 'haiku' }
 
 const where = async ($: EngineInterface, file: string) => `${await $.session.root()}/${file}`
+
+// The inbox is the record of what was answered and not yet heard: mirror it. A council that
+// has read it empties it, which clears the answers here too, ready for its new question.
+const loadAnswers = async ($: EngineInterface) => {
+  let text = ''
+
+  try {
+    const file = await where($, INBOX_FILE)
+
+    text = (await $.fs.exists(file)) ? await $.fs.read(file) : ''
+  } catch {
+    return // Unreadable is not empty: keep what is known.
+  }
+
+  const restored = answersFromInbox(text)
+
+  await update($, answers, (): Record<string, string> => restored)
+}
 
 // The council writes oracle/field.json; this reads it into session state.
 const loadField = async ($: EngineInterface) => {
@@ -40,6 +73,69 @@ const loadField = async ($: EngineInterface) => {
     }
   } catch {
     // No council has run yet.
+  }
+
+  await loadAnswers($)
+}
+
+// One answer to the Oracle's question, from /next or the band: a line appended to the
+// inbox (read, append, write: $.fs has no append), then mirrored into state.
+// Inbox writes are read-modify-write, so they run one at a time: two answers in flight at once
+// must both land. The chain lives in module scope and starts over on a reload, like any timer.
+let inboxTurn: Promise<unknown> = Promise.resolve()
+
+const recordAnswer = ($: EngineInterface, answer: Answer): Promise<{ isRecorded: boolean; text: string }> => {
+  const turn = inboxTurn.then(() => writeAnswer($, answer))
+
+  inboxTurn = turn.catch(() => undefined)
+
+  return turn
+}
+
+const writeAnswer = async ($: EngineInterface, answer: Answer): Promise<{ isRecorded: boolean; text: string }> => {
+  const f = await read($, field)
+
+  if (f === null || f.now.question === '') {
+    return { isRecorded: false, text: NO_QUESTION }
+  }
+
+  const { question, questionId, questionOptions } = f.now
+  const choice = answer.choice === undefined ? undefined : questionOptions[answer.choice]
+  const text = answer.text === undefined || answer.text.trim() === '' ? undefined : answer.text
+
+  if (answer.choice !== undefined && choice === undefined) {
+    return { isRecorded: false, text: 'That option is not on the question any more. /next shows it as it stands.' }
+  }
+
+  if (choice === undefined && text === undefined) {
+    return { isRecorded: false, text: NO_WORDS }
+  }
+
+  try {
+    const file = await where($, INBOX_FILE)
+    const before = (await $.fs.exists(file)) ? await $.fs.read(file) : ''
+    const at = new Date(await $.clock.now()).toISOString()
+
+    await $.fs.write(file, appendLine(before, answerLine({ questionId, question, choice, text, at })))
+  } catch {
+    return { isRecorded: false, text: `Could not write ${INBOX_FILE}, so nothing was recorded. Answer in chat instead.` }
+  }
+
+  const label = answerLabel(choice, text)
+
+  await update($, answers, (a): Record<string, string> => ({ ...a, [questionId]: label }))
+
+  const said = answer.choice === undefined ? label : `${LETTERS[answer.choice]}) ${label}`
+
+  return { isRecorded: true, text: `Answer recorded for the next council: ${said}` }
+}
+
+// A band press has no reply row, so only a failure needs saying.
+const pressAnswer = async ($: EngineInterface, choice: number) => {
+  const done = await recordAnswer($, { choice })
+
+  if (!done.isRecorded) {
+    $.ui.toast(done.text)
   }
 }
 
@@ -137,8 +233,9 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'next',
-      description: 'Oracle: show the paths, load one (/next 2), send it (/next 2 go), or convene a council',
-      argumentHint: '[N] [go] | convene | interview | page | refresh | hide | show',
+      description:
+        "Oracle: show the paths and the question, answer it (/next b, /next answer <words>), load a path (/next 2), send it (/next 2 go), or convene a council",
+      argumentHint: '[N] [go] | a-d [why] | answer <words> | convene | interview | page | refresh | hide | show',
     })
     await loadField($)
 
@@ -204,6 +301,15 @@ export const register: Register = (on, options) => {
     }
 
     const f = await read($, field)
+    const answer = parseAnswer(e.args, f === null ? 0 : f.now.questionOptions.length)
+
+    if (answer !== null) {
+      if (f === null || f.now.question === '') {
+        return { text: NO_QUESTION }
+      }
+
+      return { text: 'error' in answer ? answer.error : (await recordAnswer($, answer)).text }
+    }
 
     if (f === null) {
       return { text: 'No council has run yet. /next convene calls the first one.' }
@@ -225,11 +331,16 @@ export const register: Register = (on, options) => {
       return { text: isSent ? `Sent: ${path.title}` : `Loaded into the prompt: ${path.title}` }
     }
 
-    return { text: renderField(f) }
+    return { text: renderField(f, await read($, answers)) }
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
-    const [f, n, isOff] = await Promise.all([read($, field), read($, nudge), read($, isHidden)])
+    const [f, n, isOff, heard] = await Promise.all([
+      read($, field),
+      read($, nudge),
+      read($, isHidden),
+      read($, answers),
+    ])
 
     if (e.props.hasSurvey || e.props.isWorking || isOff) {
       return next(e)
@@ -252,11 +363,36 @@ export const register: Register = (on, options) => {
       )
     }
 
-    const rows = f === null ? [] : ordered(f).slice(0, Math.max(2, Math.min(9, e.props.maxRows - 2)))
-
-    if (f === null || rows.length === 0) {
+    if (f === null) {
       return next(e)
     }
+
+    const { question, questionId, questionOptions } = f.now
+    const answered = question === '' ? undefined : answerFor(heard, questionId)
+    const isAsking = question !== '' && answered === undefined
+    const options = isAsking ? questionOptions : []
+    const paths = ordered(f)
+    // Rows the tree may take and still show whole, beside the engine's own `n more` row. The
+    // ask outranks the paths: its row and its options are placed first, the paths get the rest.
+    const budget = e.props.maxRows - 1
+    const askRows = question === '' ? 0 : 1
+    const isStacked = 1 + askRows + options.length + Math.min(1, paths.length) <= budget
+    const optionRows = options.length === 0 ? 0 : isStacked ? options.length : 1
+    const rows = paths.slice(0, Math.min(9, Math.max(isAsking ? 0 : 1, budget - 1 - askRows - optionRows)))
+
+    if (!isAsking && rows.length === 0) {
+      return next(e)
+    }
+
+    const keys = [
+      options.length === 0 ? '' : letterSpan(options.length),
+      rows.length === 0 ? '' : rows.length === 1 ? '1' : `1-${rows.length}`,
+    ].filter(k => k !== '')
+    const fullHint = keys.length === 0 ? ' ' : ` · ctrl+x tab, then ${keys.join(' or ')} `
+    // On a narrow band the key hint goes first: the headline and the hide control must fit.
+    const hint = width - fullHint.length >= 36 ? fullHint : ' '
+    const freeText = options.length === 0 && width >= 48 ? '  /next answer <your words>' : ''
+    const each = Math.max(6, Math.floor((width - 2) / Math.max(1, options.length)) - 6)
 
     return (
       <Box flexDirection="column">
@@ -265,10 +401,46 @@ export const register: Register = (on, options) => {
             ◈ ORACLE{' '}
           </Text>
           <Text dimColor>
-            {fit(`round ${f.now.round} · ${f.now.headline}`, Math.max(12, width - 24))} · ctrl+x tab, then 1-9{' '}
+            {fit(`round ${f.now.round} · ${f.now.headline}`, Math.max(12, width - hint.length - 16))}
+            {hint}
           </Text>
           <Button key="hide" plain dimColor label="hide" onPress={() => update($, isHidden, () => true)} />
         </Box>
+        {isAsking && (
+          <Box key="ask">
+            <Text bold color="magenta">
+              {fit(`ASKS YOU: ${question}`, Math.max(12, width - freeText.length))}
+            </Text>
+            {freeText !== '' && <Text dimColor>{freeText}</Text>}
+          </Box>
+        )}
+        {isStacked &&
+          options.map((o, i) => (
+            <Box key={`ans-row-${i}`}>
+              <Text>{'  '}</Text>
+              <Button
+                key={`ans-${i}`}
+                plain
+                hotkey={LETTERS[i]}
+                label={fit(o, Math.max(8, width - 6))}
+                onPress={() => pressAnswer($, i)}
+              />
+            </Box>
+          ))}
+        {!isStacked && options.length > 0 && (
+          <Box key="ans-row">
+            <Text>{'  '}</Text>
+            {options.flatMap((o, i) => [
+              ...(i === 0 ? [] : [<Text key={`ans-sep-${i}`} dimColor>{' · '}</Text>]),
+              <Button key={`ans-${i}`} plain hotkey={LETTERS[i]} label={fit(o, each)} onPress={() => pressAnswer($, i)} />,
+            ])}
+          </Box>
+        )}
+        {answered !== undefined && (
+          <Text key="answered" dimColor>
+            {fit(`you answered: ${answered}`, Math.max(12, width - 2))}
+          </Text>
+        )}
         {rows.map((p, i) => {
           const label = `${p.isWildcard ? '✶' : MODES[p.mode].glyph} ${p.title}`
           const meta = `${RINGS[p.ring]} · ${dollars(p.money)} · `
