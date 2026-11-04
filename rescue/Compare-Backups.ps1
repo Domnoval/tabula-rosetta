@@ -5,7 +5,9 @@
 .DESCRIPTION
   Walks folder A and checks every file against the same relative path in folder B:
   missing files, size differences, and content (hash) differences. Then lists files
-  that exist only in B. Nothing is written to A or B. The report goes to -Out
+  that exist only in B. Anything missing, extra, changed or unreadable on either side,
+  including folders it could not open, counts as a difference, so IDENTICAL means the
+  two trees really match. Nothing is written to A or B. The report goes to -Out
   (default: your temp folder), and the script refuses to write it inside A or B.
 
   Cheap checks first: a file missing from B, or a different size, is reported without
@@ -91,7 +93,7 @@ Write-Host "Comparing  A: $aRoot" -ForegroundColor Cyan
 Write-Host "      vs   B: $bRoot" -ForegroundColor Cyan
 Write-Host 'Read-only. Large folders take a while; progress prints every 1000 files.' -ForegroundColor DarkGray
 
-Get-ChildItem -LiteralPath $aRoot -Recurse -File -Force -ErrorAction SilentlyContinue | ForEach-Object {
+Get-ChildItem -LiteralPath $aRoot -Recurse -File -Force -ErrorAction SilentlyContinue -ErrorVariable gciErrA | ForEach-Object {
     $f = $_
     $rel = $f.FullName.Substring($aRoot.Length).TrimStart('\', '/')
     if (Test-Skip $rel) { $script:skipped++; return }
@@ -113,21 +115,34 @@ Get-ChildItem -LiteralPath $aRoot -Recurse -File -Force -ErrorAction SilentlyCon
     if ($ha -ne $hb) { $script:nMismatch++; Add-Issue "CONTENT differs (same size, different bytes): $rel" }
 }
 
+# Folders Get-ChildItem could not open: their files were never compared, so they must count.
+foreach ($e in @($gciErrA | Where-Object { $_ })) {
+    $script:nUnreadable++
+    $t = if ($e.TargetObject) { "$($e.TargetObject)" } else { "$($e.CategoryInfo.TargetName)" }
+    Add-Issue ("UNREADABLE folder in A (files under it were not compared): {0}  ({1})" -f $t, $e.Exception.Message)
+}
+
 Write-Host 'Checking for files that exist only in B...' -ForegroundColor DarkGray
-Get-ChildItem -LiteralPath $bRoot -Recurse -File -Force -ErrorAction SilentlyContinue | ForEach-Object {
+Get-ChildItem -LiteralPath $bRoot -Recurse -File -Force -ErrorAction SilentlyContinue -ErrorVariable gciErrB | ForEach-Object {
     $rel = $_.FullName.Substring($bRoot.Length).TrimStart('\', '/')
     if (Test-Skip $rel) { return }
     if (-not (Test-Path -LiteralPath ($aRoot + $sep + $rel) -PathType Leaf)) { $script:nOnlyB++; Add-Issue "ONLY in B: $rel" }
 }
+foreach ($e in @($gciErrB | Where-Object { $_ })) {
+    $script:nUnreadable++
+    $t = if ($e.TargetObject) { "$($e.TargetObject)" } else { "$($e.CategoryInfo.TargetName)" }
+    Add-Issue ("UNREADABLE folder in B: {0}  ({1})" -f $t, $e.Exception.Message)
+}
 
-$problems = $script:nMismatch + $script:nMissing + $script:nSize + $script:nUnreadable
+# Two copies only match if nothing is missing, extra, changed or unreadable on either side.
+$problems = $script:nMismatch + $script:nMissing + $script:nSize + $script:nUnreadable + $script:nOnlyB
 $summary = @(
     '',
     ('Files compared: {0}  (hashed {1}, {2:N1} GB; skipped {3})' -f $script:checked, $script:hashed, ($script:bytes / 1GB), $script:skipped),
     ('Content differs: {0}   Size differs: {1}   Missing in B: {2}   Unreadable: {3}   Only in B: {4}' -f $script:nMismatch, $script:nSize, $script:nMissing, $script:nUnreadable, $script:nOnlyB)
 )
-if ($problems -eq 0) { $summary += 'RESULT: IDENTICAL. Every compared file in A exists in B with matching bytes.' }
-else { $summary += "RESULT: DIFFERENCES FOUND ($problems files in A are missing, changed or unreadable in B). See the report." }
+if ($problems -eq 0) { $summary += 'RESULT: IDENTICAL. Every compared file exists on both sides with matching bytes, and nothing was unreadable.' }
+else { $summary += "RESULT: DIFFERENCES FOUND ($problems missing, extra, changed or unreadable). See the report." }
 Add-Content -LiteralPath $outFull -Value $summary
 Write-Host ''
 foreach ($l in $summary) { Write-Host $l -ForegroundColor $(if ($l -like 'RESULT: IDENTICAL*') { 'Green' } elseif ($l -like 'RESULT:*') { 'Red' } else { 'Gray' }) }
