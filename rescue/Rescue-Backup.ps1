@@ -222,22 +222,38 @@ function Save-Evidence {
             Export-Csv -NoTypeInformation -Path (Join-Path $Meta 'installed-apps.csv')
     } catch { }
 
+    $since = (Get-Date).AddDays(-21)
+    $ev = @()
     try {
-        $since = (Get-Date).AddDays(-21)
+        # Blue screens are logged by Microsoft-Windows-WER-SystemErrorReporting (shown as "BugCheck" in Event Viewer).
         $ev = @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; Level = 1, 2, 3; StartTime = $since } -ErrorAction Stop |
-            Where-Object { $_.ProviderName -match 'Kernel-Power|WHEA|Display|nvlddmkm|amdkmdag|amdwddmg|igfx|BugCheck|volmgr|disk|Ntfs|storahci|stornvme|EventLog' })
-        $ev | Select-Object TimeCreated, Id, ProviderName, LevelDisplayName,
+            Where-Object { $_.ProviderName -match 'Kernel-Power|WHEA|Display|nvlddmkm|amdkmdag|amdwddmg|igfx|BugCheck|WER-SystemErrorReporting|volmgr|disk|Ntfs|storahci|stornvme|EventLog' })
+    } catch { }
+    $wer = @()
+    try {
+        # Graphics driver timeouts (TDRs, the "driver timeout" popup) land in the Application log as
+        # Windows Error Reporting "LiveKernelEvent" reports, often with nothing in the System log.
+        $wer = @(Get-WinEvent -FilterHashtable @{ LogName = 'Application'; ProviderName = 'Windows Error Reporting'; StartTime = $since } -ErrorAction Stop |
+            Where-Object { "$($_.Message)" -match 'LiveKernelEvent|BlueScreen' })
+    } catch { }
+    $all = @($ev) + @($wer)
+    if ($all.Count -eq 0) { Say 'No crash events readable (or none logged). Skipping crash-evidence.' 'DarkGray'; return }
+
+    try {
+        $all | Select-Object TimeCreated, Id, ProviderName, LevelDisplayName,
                 @{ n = 'Message'; e = { ("$($_.Message)" -split "\r?\n")[0] } } |
             Export-Csv -NoTypeInformation -Path (Join-Path $Meta 'crash-evidence.csv')
 
         $kp   = @($ev | Where-Object { $_.ProviderName -match 'Kernel-Power' -and $_.Id -eq 41 }).Count
+        $bsod = @($ev | Where-Object { $_.ProviderName -match 'WER-SystemErrorReporting|BugCheck' }).Count
+        $tdr  = @($wer | Where-Object { "$($_.Message)" -match 'LiveKernelEvent' }).Count
         $gpu  = @($ev | Where-Object { $_.ProviderName -match 'Display|nvlddmkm|amdkmdag|amdwddmg|igfx' }).Count
         $whea = @($ev | Where-Object { $_.ProviderName -match 'WHEA' }).Count
         $dsk  = @($ev | Where-Object { $_.ProviderName -match 'disk|Ntfs|volmgr|storahci|stornvme' }).Count
-        Say ("Last 21 days: {0} unexpected shutdowns, {1} GPU/display events, {2} hardware-error (WHEA) events, {3} disk events." -f $kp, $gpu, $whea, $dsk) 'Yellow'
+        Say ("Last 21 days: {0} unexpected shutdowns, {1} blue screens, {2} driver timeouts (LiveKernelEvent, usually the GPU), {3} GPU/display events, {4} hardware-error (WHEA) events, {5} disk events." -f $kp, $bsod, $tdr, $gpu, $whea, $dsk) 'Yellow'
         if ($dsk -gt 0) { Say 'Disk events present: the SSD itself may be unhealthy. That is why the important stuff goes first.' 'Yellow' }
     } catch {
-        Say 'No crash events readable (or none logged). Skipping crash-evidence.' 'DarkGray'
+        Say "Could not save crash-evidence: $_" 'DarkGray'
     }
 }
 
