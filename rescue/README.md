@@ -48,7 +48,7 @@ Each folder is its own robocopy run. Re-running skips anything already copied (s
 - `installed-apps.csv` list of installed programs, for reinstalling after a reset
 - `crash-evidence.csv` last 21 days of shutdown, GPU, WHEA and disk events
 
-At the end it verifies source against destination (size and timestamp) and says COMPLETE or lists what differs.
+At the end it verifies source against destination (size and timestamp) and says COMPLETE or lists what differs. Folders that differ are forgotten from `state.txt`, so the next run copies them again. Folders that an open app is still writing to (for example `.claude`, `.codex`) can differ again right away: close the app, then re-run.
 
 ## Not covered
 

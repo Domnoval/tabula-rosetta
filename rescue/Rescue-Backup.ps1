@@ -172,7 +172,7 @@ function Get-RoboArgs($it, [string[]]$more) {
     if ($it.Files -ne '*') { $ra += $it.Files }
     if ($it.Recurse) { $ra += '/E' }
     $ra += @('/COPY:DAT', '/DCOPY:DAT', '/FFT', '/XJ',
-             '/XF', 'Thumbs.db', 'desktop.ini',
+             '/XF', 'Thumbs.db', 'desktop.ini', '*.sock',
              '/XD', '$RECYCLE.BIN', 'System Volume Information')
     if ($it.ExcludeDirs) { $ra += $it.ExcludeDirs }
     return ($ra + $more)
@@ -341,9 +341,18 @@ $bad = @()
 if (-not $fatal) {
     Say ''
     Say 'Verifying (size + timestamp compare, no heavy hashing)...' 'Cyan'
+    $badNames = @()
     foreach ($it in $queue) {
         $rc = Test-Backup $it
-        if ($rc -ne 0) { $bad += ('{0}  (compare code {1})' -f $it.Name, $rc) }
+        if ($rc -ne 0) {
+            $bad += ('{0}  (compare code {1})' -f $it.Name, $rc)
+            $badNames += $it.Name
+        }
+    }
+    if ($badNames.Count -gt 0 -and (Test-Path -LiteralPath $StateFile)) {
+        # Make "re-run to fix" true: forget folders that failed verify so the next run copies them again.
+        $keep = @(Get-Content -LiteralPath $StateFile | Where-Object { $badNames -notcontains $_ })
+        Set-Content -LiteralPath $StateFile -Value $keep
     }
 }
 
@@ -364,8 +373,9 @@ if ($errored.Count -gt 0) {
 }
 if ($bad.Count -gt 0) {
     $lines += ''
-    $lines += 'Differences found on verify (re-run the script to fix, or check logs):'
+    $lines += 'Differences found on verify (re-run the script and these folders are copied again; or check logs):'
     foreach ($b in $bad) { $lines += "  $b" }
+    $lines += 'Folders an app is writing to right now (for example .claude, .codex) can differ again straight away: close the app first.'
 }
 $lines += ''
 $lines += 'Not covered: installed programs (see installed-apps.csv), saved browser passwords,'
