@@ -50,6 +50,17 @@ Each folder is its own robocopy run. Re-running skips anything already copied (s
 
 At the end it verifies source against destination (size and timestamp) and says COMPLETE or lists what differs. Folders that differ are forgotten from `state.txt`, so the next run copies them again. Folders that an open app is still writing to (for example `.claude`, `.codex`) can differ again right away: close the app, then re-run.
 
+## Prove the backup (read-only, byte-for-byte)
+
+The built-in verify only compares size and timestamp. `Compare-Backups.ps1` hashes (SHA256) every file in one folder and checks it against the other, and lists anything missing, different or unreadable. It writes nothing to either folder; the report goes to your temp folder.
+
+```powershell
+.\Compare-Backups.ps1 -A D:\Rescue-DAYWALKER-Michael -B E:\Rescue-DAYWALKER-Michael -SkipTop "_rescue,Downloads,Pictures,Extra-C_Users_Michael_.claude,Extra-C_Users_Michael_.codex"
+.\Compare-Backups.ps1 -A C:\vault -B E:\Rescue-DAYWALKER-Michael\Extra-C_vault
+```
+
+Both copies were made from the same flaky machine, so two identical copies is strong evidence, and a copy that matches the original on C: is stronger still. `node_modules` and similar rebuildable folders are skipped unless you pass `-IncludeRebuildable`.
+
 ## Not covered
 
 - Saved browser passwords and your authenticator app: export or sync them yourself
